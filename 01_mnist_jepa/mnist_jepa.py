@@ -1,3 +1,13 @@
+# ---
+# jupyter:
+#   accelerator: GPU
+#   colab:
+#     gpuType: T4
+#   kernelspec:
+#     display_name: Python 3
+#     name: python3
+# ---
+
 # %% [markdown]
 # # MNIST JEPA — the "hello world" of JEPA
 #
