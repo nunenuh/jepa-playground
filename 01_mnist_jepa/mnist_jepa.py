@@ -24,6 +24,14 @@
 # linear probe: freeze the encoder, train only one linear layer on the labels.
 # Run as a script, or open in VS Code / Jupyter (the `# %%` lines are cells).
 
+# %% [markdown]
+# ## Architecture: one training step
+#
+# ![MNIST JEPA architecture](https://raw.githubusercontent.com/nunenuh/jepa-playground/main/01_mnist_jepa/assets/architecture-light.svg)
+#
+# Blue boxes are trained by the loss. The dashed target encoder is never trained
+# directly: after each step it moves 0.4% of the way towards the context encoder (EMA).
+
 # %%
 import copy
 

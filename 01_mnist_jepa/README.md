@@ -16,17 +16,10 @@ looking at. So it ends up learning digit features without ever seeing a label.
 
 ## Architecture (one training step)
 
-```mermaid
-flowchart LR
-    IMG["Image<br/>1×28×28"] --> PATCH["patchify<br/>16×49"]
-    PATCH --> SPLIT["random split<br/>10 shown · 6 hidden"]
-    SPLIT -- shown only --> CTX["Context encoder<br/>4-layer transformer<br/>10×128"]
-    CTX --> PRED["Predictor<br/>+ 'where?' tokens<br/>6×128"]
-    SPLIT -- full image --> TGT["Target encoder<br/>EMA copy · no_grad<br/>16×128 → pick 6"]
-    PRED -- predicted embeddings --> LOSS["Loss<br/>smooth L1"]
-    TGT -- target embeddings --> LOSS
-    CTX -. "EMA 0.996<br/>slowly copies" .-> TGT
-```
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/architecture-dark.svg">
+  <img alt="MNIST JEPA architecture: one training step" src="assets/architecture-light.svg">
+</picture>
 
 | Part | In the code | Trained how |
 |---|---|---|

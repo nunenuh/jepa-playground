@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 910 345" width="910" height="345">
+  <rect x="0" y="0" width="910" height="345" rx="12" fill="#0d1117"/>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#c3c2b7"/></marker>
+    <marker id="ahv" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9085e9"/></marker>
+  </defs>
+  <style>
+    text { fill: #f0efec; font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .box { fill: #161b22; stroke: #3d444d; stroke-width: 1.5; }
+    .learn { stroke: #3987e5; } .frozen { stroke: #9a9890; stroke-dasharray: 4 3; } .loss { stroke: #e0622f; }
+    .m { font-size: 13px; font-weight: 600; }
+    .s { font-size: 11.5px; fill: #c3c2b7; font-family: ui-monospace, Menlo, Consolas, monospace; }
+    .c { font-size: 11px; fill: #9a9890; font-family: ui-monospace, Menlo, Consolas, monospace; }
+    .v { fill: #9085e9; }
+    .a { stroke: #c3c2b7; stroke-width: 1.5; fill: none; marker-end: url(#ah); }
+    .ema { stroke: #9085e9; stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; marker-end: url(#ahv); }
+  </style>
+  <g transform="translate(6,8)">
+  <rect class="box" x="4" y="125" width="112" height="70" rx="8"/>
+  <text class="m" x="60" y="150" text-anchor="middle">Image</text>
+  <text class="s" x="60" y="167" text-anchor="middle">1 × 28 × 28</text>
+  <text class="c" x="60" y="183" text-anchor="middle">no labels used</text>
+  <rect class="box" x="134" y="125" width="112" height="70" rx="8"/>
+  <text class="m" x="190" y="150" text-anchor="middle">patchify</text>
+  <text class="s" x="190" y="167" text-anchor="middle">16 × 49</text>
+  <text class="c" x="190" y="183" text-anchor="middle">4×4 grid of 7×7</text>
+  <path class="a" d="M116,160 H132"/>
+  <rect class="box" x="264" y="125" width="150" height="70" rx="8"/>
+  <text class="m" x="339" y="150" text-anchor="middle">random split</text>
+  <text class="s" x="339" y="167" text-anchor="middle">10 shown · 6 hidden</text>
+  <text class="c" x="339" y="183" text-anchor="middle">new split every step</text>
+  <path class="a" d="M246,160 H262"/>
+  <rect class="box learn" x="470" y="20" width="150" height="70" rx="8"/>
+  <text class="m" x="545" y="45" text-anchor="middle">Context encoder</text>
+  <text class="s" x="545" y="62" text-anchor="middle">10 × 128</text>
+  <text class="c" x="545" y="78" text-anchor="middle">4-layer transformer</text>
+  <path class="a" d="M414,145 C445,145 440,55 468,55"/>
+  <text class="c" x="420" y="110">shown only</text>
+  <rect class="box learn" x="645" y="20" width="135" height="70" rx="8"/>
+  <text class="m" x="712" y="45" text-anchor="middle">Predictor</text>
+  <text class="s" x="712" y="62" text-anchor="middle">→ 6 × 128</text>
+  <text class="c" x="712" y="78" text-anchor="middle">+ "where?" tokens</text>
+  <path class="a" d="M620,55 H643"/>
+  <rect class="box frozen" x="470" y="230" width="150" height="70" rx="8"/>
+  <text class="m" x="545" y="255" text-anchor="middle">Target encoder</text>
+  <text class="s" x="545" y="272" text-anchor="middle">16 × 128 → pick 6</text>
+  <text class="c" x="545" y="288" text-anchor="middle">EMA copy · no_grad</text>
+  <path class="a" d="M414,175 C445,175 440,265 468,265"/>
+  <text class="c" x="358" y="240">full image</text>
+  <rect class="box loss" x="796" y="125" width="100" height="70" rx="8"/>
+  <text class="m" x="846" y="150" text-anchor="middle">Loss</text>
+  <text class="s" x="846" y="167" text-anchor="middle">smooth L1</text>
+  <text class="c" x="846" y="183" text-anchor="middle">pred vs target</text>
+  <path class="a" d="M780,55 C810,55 846,80 846,123"/>
+  <path class="a" d="M620,265 C810,265 846,240 846,197"/>
+  <text class="c" x="650" y="108">predicted embeddings</text>
+  <text class="c" x="650" y="252">target embeddings</text>
+  <path class="ema" d="M515,92 V228"/>
+  <text class="c v" x="523" y="155">EMA 0.996:</text>
+  <text class="c v" x="523" y="169">slowly copies the</text>
+  <text class="c v" x="523" y="183">context encoder</text>
+  <text class="c" x="892" y="322" text-anchor="end">no decoder, no pixels: only embeddings are compared</text>
+  </g>
+</svg>
