@@ -15,6 +15,7 @@ learn meaning (shape, structure, what happens next) and ignore noise.
 | 02 | [Collapse on purpose](02_collapse/) | Why JEPA needs anti-collapse (EMA, stop-gradient, SIGReg) | ✅ | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nunenuh/jepa-playground/blob/main/02_collapse/collapse.ipynb) |
 | 03 | [Moving-ball world model](03_moving_ball/) | Predicting the future in latent space; anomaly = surprise | ✅ | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nunenuh/jepa-playground/blob/main/03_moving_ball/moving_ball.ipynb) |
 | 04 | [Agent tool-call guardrail](04_agent_guardrail/) | JEPA on agent trajectories to catch prompt injection hijacks | ✅ | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nunenuh/jepa-playground/blob/main/04_agent_guardrail/agent_guardrail.ipynb) |
+| 05 | [Guardrail on real agents](05_real_agents/) | The 04 recipe on 29 real LLM agents (AgentDojo); synthetic → real transfer | ✅ | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nunenuh/jepa-playground/blob/main/05_real_agents/real_agents.ipynb) |
 
 ## Results
 
@@ -24,6 +25,7 @@ learn meaning (shape, structure, what happens next) and ignore noise.
 | 02 | 58.7% (random encoder) | EMA 61.4% · SIGReg 63.1% · no anti-collapse 17–23% | 5 epochs per run, Colab T4. [Details and figures](02_collapse/README.md) |
 | 03 | anomaly AUC 0.49 | anomaly AUC 1.00 (teleport & reverse) | 3000 steps, Colab T4 (~1 min), no anomaly labels. [Details and figures](03_moving_ball/README.md) |
 | 04 | hijack AUC 0.83 (probe on raw text) | **0.88** (probe on raw + JEPA features); JEPA surprise alone 0.59 | AgentDrift, unseen tasks, Colab T4 (~3 min). [Details and figures](04_agent_guardrail/README.md) |
+| 05 | hijacked vs resisted AUC 0.61 (raw, 50 labels) | **0.75** (JEPA, 50 labels) · 0.82 (all labels) · 0.77 trained on synthetic only | AgentDojo, unseen tasks + unseen attacker goals, Colab T4. [Details and figures](05_real_agents/README.md) |
 
 ## Run
 
