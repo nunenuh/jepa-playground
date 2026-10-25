@@ -1,0 +1,64 @@
+{
+ "adapt_history": [
+  [
+   0,
+   null,
+   0.5656298398971558
+  ],
+  [
+   1,
+   0.47582937457731794,
+   0.45551925897598267
+  ],
+  [
+   2,
+   0.44482969865202904,
+   0.4434206187725067
+  ],
+  [
+   3,
+   0.43453639852149145,
+   0.4369838237762451
+  ],
+  [
+   4,
+   0.4279166901750224,
+   0.43315407633781433
+  ],
+  [
+   5,
+   0.4228168007518564,
+   0.4307529628276825
+  ],
+  [
+   6,
+   0.41837386041879654,
+   0.42896008491516113
+  ]
+ ],
+ "holdout_videos": [
+  "13",
+  "14",
+  "15",
+  "16"
+ ],
+ "epochs": 6,
+ "auc_raw": {
+  "V-JEPA 2 surprise, raw (top5)": 0.47363789357935954,
+  "V-JEPA 2 surprise, raw (mean)": 0.7668679262994154,
+  "V-JEPA 2 surprise, calibrated (top5)": 0.683396583167945,
+  "V-JEPA 2 surprise, calibrated (mean)": 0.764583221584509,
+  "seen-before baseline (top5)": 0.8319493241431101,
+  "seen-before baseline (mean)": 0.9248561792629941,
+  "adapted surprise, raw (top5)": 0.5421874161883817,
+  "adapted surprise, raw (mean)": 0.7510979321997533,
+  "adapted surprise, calibrated (top5)": 0.6107369387974039,
+  "adapted surprise, calibrated (mean)": 0.730595934130773,
+  "combined: adapted surprise, raw (mean) + seen-before (mean)": 0.8721017942391246
+ },
+ "best_adapted_score": [
+  "adapted surprise, raw",
+  "mean"
+ ]
+}
+

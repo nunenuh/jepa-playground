@@ -166,12 +166,13 @@ METHODS = ["V-JEPA 2 surprise, raw", "V-JEPA 2 surprise, calibrated", "seen-befo
 # would wash them out.
 
 # %%
-def frame_maps(frames):
-    """-> one (n_frames, 16, 16) map per method."""
-    maps = torch.zeros(len(METHODS), len(frames), GRID, GRID, device=DEVICE)
+def frame_maps(frames, map_fn=None, n_maps=None):
+    """-> one (n_frames, 16, 16) map per output of map_fn (default: the 3 METHODS)."""
+    map_fn, n_maps = map_fn or window_maps, n_maps or len(METHODS)
+    maps = torch.zeros(n_maps, len(frames), GRID, GRID, device=DEVICE)
     count = torch.zeros(len(frames), device=DEVICE)
     for s in range(0, len(frames) - T + 1, STRIDE):
-        for k, m in enumerate(window_maps(frames[s:s + T])):
+        for k, m in enumerate(map_fn(frames[s:s + T])):
             maps[k, s + T_CTX:s + T] += m
         count[s + T_CTX:s + T] += 1
     seen = torch.nonzero(count).flatten()
@@ -299,3 +300,144 @@ for ax, m_img, title in [
     ax.imshow(heat, cmap="inferno", alpha=0.55)
     ax.set_title(title, fontsize=8.5); ax.axis("off")
 plt.tight_layout(); plt.savefig(OUT / "calibration.png", dpi=110); plt.show()
+
+# %% [markdown]
+# ## Part 2: adapt the predictor to this camera
+#
+# Zero-shot, V-JEPA 2's predictor doesn't know that *on this camera* the
+# trees always sway and people always walk the same way. So we fine-tune
+# **only the predictor** (22M parameters; the 300M encoder stays frozen) to
+# predict the future of Ped2's **normal training videos**, exactly the 03
+# recipe on a real world model. 12 training videos are used for fitting,
+# 4 are held out for early stopping and for calibrating the surprise.
+
+# %%
+import copy
+
+HOLDOUT = list(train_videos)[-4:]
+FIT = [n for n in train_videos if n not in HOLDOUT]
+
+
+@torch.no_grad()
+def encode_window(clip):
+    """Context latents (past 12 frames only) and layer-normed target latents (next 4)."""
+    px = to_pixels(clip)
+    ctx = model(pixel_values_videos=px[:, :T_CTX], skip_predictor=True).last_hidden_state[0]
+    tgt = model(pixel_values_videos=px, skip_predictor=True).last_hidden_state[0, N_CTX:]
+    return ctx, F.layer_norm(tgt.float(), (tgt.size(-1),)).half()
+
+
+def cache(names, stride):
+    pairs = [encode_window(train_videos[n][s:s + T]) for n in names for s in range(0, len(train_videos[n]) - T + 1, stride)]
+    return torch.stack([c for c, _ in pairs]), torch.stack([t for _, t in pairs])
+
+
+def token_l1(predictor, ctx, tgt):
+    """(B, 512) L1 error per predicted token."""
+    B = ctx.size(0)
+    cm = [torch.arange(N_CTX, device=DEVICE).unsqueeze(0).expand(B, -1)]
+    tm = [torch.arange(N_CTX, N_ALL, device=DEVICE).unsqueeze(0).expand(B, -1)]
+    with torch.autocast("cuda", dtype=torch.float16):
+        pred = predictor(encoder_hidden_states=ctx, context_mask=cm, target_mask=tm).last_hidden_state
+    return (pred.float() - tgt.float()).abs().mean(-1)
+
+
+t0 = time.time()
+CTX_FIT, TGT_FIT = cache(FIT, 4)
+CTX_HOLD, TGT_HOLD = cache(HOLDOUT, 8)
+print(f"cached {len(CTX_FIT)} fit / {len(CTX_HOLD)} held-out windows in {time.time() - t0:.0f}s")
+
+
+@torch.no_grad()
+def holdout_loss(predictor):
+    return torch.cat([token_l1(predictor, c, t).mean(1) for c, t in zip(CTX_HOLD.split(8), TGT_HOLD.split(8))]).mean().item()
+
+
+adapted = copy.deepcopy(model.predictor).float()
+opt = torch.optim.AdamW(adapted.parameters(), lr=1e-4, weight_decay=0.01)
+scaler = torch.amp.GradScaler()
+EPOCHS = 6
+adapt_history = [(0, None, holdout_loss(model.predictor))]
+best, best_state = adapt_history[0][2], copy.deepcopy(adapted.state_dict())
+t0 = time.time()
+for epoch in range(1, EPOCHS + 1):
+    adapted.train()
+    losses = []
+    for b in torch.randperm(len(CTX_FIT), device=DEVICE).split(8):
+        loss = token_l1(adapted, CTX_FIT[b], TGT_FIT[b]).mean()
+        opt.zero_grad()
+        scaler.scale(loss).backward()
+        scaler.step(opt)
+        scaler.update()
+        losses.append(loss.item())
+    adapted.eval()
+    hold = holdout_loss(adapted)
+    adapt_history.append((epoch, sum(losses) / len(losses), hold))
+    if hold < best:
+        best, best_state = hold, copy.deepcopy(adapted.state_dict())
+    print(f"epoch {epoch}  fit L1 {adapt_history[-1][1]:.4f}  held-out L1 {hold:.4f}  ({time.time() - t0:.0f}s)")
+adapted.load_state_dict(best_state)
+adapted.eval()
+print(f"held-out L1: zero-shot {adapt_history[0][2]:.4f} -> adapted {best:.4f}")
+
+# %%
+@torch.no_grad()
+def adapted_map(clip):
+    ctx, tgt = encode_window(clip)
+    return token_l1(adapted, ctx[None], tgt[None])[0].view(T_PRED // TUBELET, GRID, GRID).mean(0)
+
+
+del opt, scaler, CTX_FIT, TGT_FIT                             # free training memory before scoring
+torch.cuda.empty_cache()
+with torch.no_grad():
+    hold_maps = torch.stack([token_l1(adapted, c[None], t[None])[0].view(T_PRED // TUBELET, GRID, GRID).mean(0)
+                             for c, t in zip(CTX_HOLD, TGT_HOLD)])
+MU_A, SD_A = hold_maps.mean(0), hold_maps.std(0) + 1e-6     # calibrated on held-out normal video only
+
+t0 = time.time()
+maps["adapted surprise, raw"], maps["adapted surprise, calibrated"] = {}, {}
+for name, frames in test_videos.items():
+    raw = frame_maps(frames, lambda c: [adapted_map(c)], 1)[0]
+    maps["adapted surprise, raw"][name] = raw
+    maps["adapted surprise, calibrated"][name] = (raw - MU_A.cpu()) / SD_A.cpu()
+print(f"rescored test videos with the adapted predictor in {time.time() - t0:.0f}s")
+
+
+def rank01(x):
+    return np.argsort(np.argsort(x)) / (len(x) - 1)
+
+
+frame_score = {
+    "top5": lambda m: topk_score(m),
+    "mean": lambda m: m.flatten(1).mean(1).numpy(),
+}
+all_scores = {(method, kind): np.concatenate([fn(maps[method][n]) for n in test_videos])
+              for method in maps for kind, fn in frame_score.items()}
+part2 = {f"{method} ({kind})": auc(y_all, s) for (method, kind), s in all_scores.items()}
+best_surprise = max((k for k in all_scores if k[0].startswith("adapted")), key=lambda k: part2[f"{k[0]} ({k[1]})"])
+combined = rank01(all_scores[best_surprise]) + rank01(all_scores[("seen-before baseline", "mean")])
+part2[f"combined: {best_surprise[0]} ({best_surprise[1]}) + seen-before (mean)"] = auc(y_all, combined)
+for k, v in sorted(part2.items(), key=lambda kv: -kv[1]):
+    print(f"{v:.3f}  {k}")
+
+# %%
+fig, axes = plt.subplots(1, 2, figsize=(12, 3.6))
+ep, fit_l, hold_l = zip(*adapt_history)
+axes[0].plot(ep[1:], fit_l[1:], marker="o", color="#2a78d6", label="fit videos")
+axes[0].plot(ep, hold_l, marker="o", color="#1baf7a", label="held-out normal videos")
+axes[0].set_xlabel("epoch (0 = zero-shot)"); axes[0].set_ylabel("prediction L1"); axes[0].grid(alpha=.3)
+axes[0].set_title("Adapting the predictor to Ped2"); axes[0].legend(fontsize=8)
+items = sorted(part2.items(), key=lambda kv: kv[1])
+axes[1].barh([k for k, _ in items], [v for _, v in items], color="#1baf7a")
+for i, (_, v) in enumerate(items):
+    axes[1].text(v + 0.005, i, f"{v:.3f}", va="center", fontsize=7)
+axes[1].set_xlim(0.4, 1.02); axes[1].tick_params(axis="y", labelsize=7); axes[1].set_xlabel("frame-level AUC (raw)")
+axes[1].set_title("Every score, zero-shot vs adapted")
+plt.tight_layout(); plt.savefig(OUT / "adapted.png", dpi=110); plt.show()
+
+# %%
+import json
+
+(OUT / "results_part2.json").write_text(json.dumps({
+    "adapt_history": adapt_history, "holdout_videos": HOLDOUT, "epochs": EPOCHS,
+    "auc_raw": part2, "best_adapted_score": list(best_surprise)}, indent=1))

@@ -27,7 +27,7 @@ learn meaning (shape, structure, what happens next) and ignore noise.
 | 03 | anomaly AUC 0.49 | anomaly AUC 1.00 (teleport & reverse) | 3000 steps, Colab T4 (~1 min), no anomaly labels. [Details and figures](03_moving_ball/README.md) |
 | 04 | hijack AUC 0.83 (probe on raw text) | **0.88** (probe on raw + JEPA features); JEPA surprise alone 0.59 | AgentDrift, unseen tasks, Colab T4 (~3 min). [Details and figures](04_agent_guardrail/README.md) |
 | 05 | hijacked vs resisted AUC 0.61 (raw, 50 labels) | **0.75** (JEPA, 50 labels) · **0.94** with argument sources (~80% caught at 5% false alarms; AUC 0.90–0.99 on unseen attack types) · 0.77 trained on synthetic only | AgentDojo, unseen tasks + unseen attacker goals, Colab T4. [Details and figures](05_real_agents/README.md) |
-| 06 | anomaly AUC 0.474 (raw top-5 surprise, drowned by foliage) | **0.683** (spatially calibrated surprise) · **0.832** top-5 / **0.925** whole-frame (seen-before latent bank) | UCSD Ped2, zero-shot (`facebook/vjepa2-vitl-fpc64-256`), Colab T4 (~5.5 min). [Details and figures](06_vjepa2_video/README.md) |
+| 06 | anomaly AUC 0.474 (raw top-5 surprise, drowned by foliage) | **0.683** (spatially calibrated surprise) · **0.832** top-5 / **0.925** whole-frame (seen-before latent bank) · adapting the predictor: prediction −24% error, detection no better | UCSD Ped2, zero-shot + predictor fine-tune (`facebook/vjepa2-vitl-fpc64-256`), Colab T4 (~16 min). [Details and figures](06_vjepa2_video/README.md) |
 
 ## Run
 

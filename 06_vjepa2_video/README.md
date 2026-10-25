@@ -83,6 +83,33 @@ when the anomaly enters the frame and drop back down once it leaves:
 
 ![timeline](assets/timeline.png)
 
+## Part 2: adapt the predictor to this camera
+
+Can we make surprise work by teaching V-JEPA 2 what *normal* looks like on
+this camera? We fine-tune **only the predictor** (22M parameters; the 300M
+encoder stays frozen) on Ped2's normal training videos: 12 videos for
+fitting, 4 held out for early stopping and for calibrating the surprise.
+6 epochs, ~4 minutes on the T4.
+
+![adapted](assets/adapted.png)
+
+| Score (frame-level AUC, raw) | Zero-shot | Adapted predictor |
+|---|---|---|
+| Surprise, whole-frame mean | **0.767** | 0.751 |
+| Surprise, calibrated top-5 | **0.683** | 0.611 |
+| Surprise, raw top-5 | 0.474 | 0.542 |
+| Adapted surprise + seen-before (rank sum) | – | 0.872 |
+| *Seen-before baseline, whole-frame mean* | ***0.925*** | |
+
+**The predictor learns the camera, but anomaly detection doesn't improve.**
+Held-out prediction error falls from 0.566 to 0.429 (−24%). Yet every
+surprise score stays at 0.54–0.75, and adding surprise to the seen-before
+score makes it *worse* (0.872 < 0.925). A better world model predicts the
+whole scene better, bikes included: a bike riding along the walkway is
+normal physics, so it isn't surprising. Ped2's anomalies are *unusual
+objects*, not *impossible motion*. Raw numbers:
+[`assets/results_part2.json`](assets/results_part2.json).
+
 ## What it shows
 
 - **Spatial calibration is essential for world-model surprise on real cameras.**
@@ -99,16 +126,19 @@ when the anomaly enters the frame and drop back down once it leaves:
   (`0.832` vs `0.683` top-5 AUC, `0.925` whole-frame AUC).** Just like in
   Experiments 04 and 05, frozen V-JEPA 2 representations + a simple normal
   reference bank are a remarkably strong zero-shot detector.
+- **Adapting the predictor doesn't change that (Part 2).** It predicts this
+  camera 24% better, but surprise still doesn't catch bikes, and combining it
+  with seen-before hurts. Surprise answers "is this physically unexpected?";
+  Ped2 asks "is this an unusual object here?". Pick the signal that matches
+  the kind of anomaly, the same lesson as 03 vs 04.
 
 ## Experiments to try
 
-- **Combine both signals**: `calibrated_surprise + α * seen_before_distance` to
-  catch both unfamiliar appearance (bikes) and sudden motion changes (falls/runs).
+- **A dataset whose anomalies are physical** (falls, objects thrown, sudden
+  running, e.g. the CUHK Avenue "throwing" clips): where surprise should beat
+  seen-before.
 - **Longer prediction horizon**: predict 8 frames ahead (`T_CTX=8, T_PRED=8`) so
   fast anomalies diverge further from linear pedestrian motion.
-- **Fine-tune a tiny adapter on the 16 normal videos**: train a lightweight
-  predictor head specifically on Ped2 normal walking so bicycles become
-  genuinely unpredicted.
 
 ## Run
 
