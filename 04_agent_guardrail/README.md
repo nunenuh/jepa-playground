@@ -28,6 +28,13 @@ company, contacts) alone predict the attacked class with 93–98% accuracy in
 four domains. Every world name and address is replaced by a placeholder
 (`<USER>`, `<CONTACT_EMAIL>`, ...) before anything sees the text.
 
+## Architecture
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/architecture-dark.svg">
+  <img alt="Agent guardrail: agent run to text tokens to MiniLM to JEPA, then surprise (A) or probe (B)" src="assets/architecture-light.svg">
+</picture>
+
 ## Setup
 
 | Part | What it is |

@@ -29,6 +29,8 @@
 # - **spread**: std of embeddings across images. ~0 = everything is the same.
 # - **effective rank**: how many of the 128 dimensions are really used. 1 = collapsed.
 # - **linear probe accuracy**: how much digit information survived.
+#
+# ![the 4 runs](https://raw.githubusercontent.com/nunenuh/jepa-playground/main/02_collapse/assets/variants-light.svg)
 
 # %%
 import copy

@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 910 498" width="910" height="498">
+  <rect x="0" y="0" width="910" height="498" rx="12" fill="#0d1117"/>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#c3c2b7"/></marker>
+    <marker id="ahv" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9085e9"/></marker>
+    <marker id="ahr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#ff6b6a"/></marker>
+  </defs>
+  <style>
+    text { fill: #f0efec; font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .box { fill: #161b22; stroke: #3d444d; stroke-width: 1.5; }
+    .learn { stroke: #3987e5; } .frozen { stroke: #9a9890; stroke-dasharray: 4 3; } .loss { stroke: #e0622f; }
+    .bad { stroke: #ff6b6a; } .good { stroke: #3fd29b; }
+    .m { font-size: 13px; font-weight: 600; }
+    .h { font-size: 14px; font-weight: 700; }
+    .s { font-size: 11.5px; fill: #c3c2b7; font-family: ui-monospace, Menlo, Consolas, monospace; }
+    .c { font-size: 11px; fill: #9a9890; font-family: ui-monospace, Menlo, Consolas, monospace; }
+    .v { fill: #9085e9; } .r { fill: #ff6b6a; } .g { fill: #3fd29b; } .y { fill: #f0b429; }
+    .a { stroke: #c3c2b7; stroke-width: 1.5; fill: none; marker-end: url(#ah); }
+    .ar { stroke: #ff6b6a; stroke-width: 1.5; fill: none; marker-end: url(#ahr); }
+    .ema { stroke: #9085e9; stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; marker-end: url(#ahv); }
+  </style>
+  <g transform="translate(6,8)">
+  <rect class="box" x="4" y="4" width="440" height="222" rx="10" style="fill:none"/>
+  <text class="h" x="18" y="28" text-anchor="start">ema+stopgrad  (01 setup)</text>
+  <text class="m g" x="430" y="28" text-anchor="end">✓ learns · 61%</text>
+  <rect class="box learn" x="18" y="44" width="120" height="58" rx="8"/>
+  <text class="m" x="78.0" y="69" text-anchor="middle">Encoder</text>
+  <text class="s" x="78.0" y="86" text-anchor="middle">sees shown part</text>
+  <rect class="box learn" x="164" y="44" width="110" height="58" rx="8"/>
+  <text class="m" x="219.0" y="69" text-anchor="middle">Predictor</text>
+  <text class="s" x="219.0" y="86" text-anchor="middle">guess</text>
+  <rect class="box loss" x="320" y="90" width="110" height="52" rx="8"/>
+  <text class="m" x="375.0" y="115" text-anchor="middle">Loss</text>
+  <text class="s" x="375.0" y="132" text-anchor="middle">guess vs target</text>
+  <rect class="box frozen" x="164" y="132" width="110" height="58" rx="8"/>
+  <text class="m" x="219.0" y="157" text-anchor="middle">EMA copy</text>
+  <text class="s" x="219.0" y="174" text-anchor="middle">no gradient</text>
+  <path class="a" d="M138,73 H162"/>
+  <path class="a" d="M274,73 C304,73 304,108 318,108"/>
+  <path class="a" d="M274,161 C304,161 304,126 318,126"/>
+  <path class="ema" d="M78,102 V161 H162"/>
+  <text class="c v" x="26" y="182" text-anchor="start">slow copy of</text>
+  <text class="c v" x="26" y="196" text-anchor="start">the encoder</text>
+
+  <rect class="box" x="458" y="4" width="440" height="222" rx="10" style="fill:none"/>
+  <text class="h" x="472" y="28" text-anchor="start">no-stopgrad</text>
+  <text class="m r" x="884" y="28" text-anchor="end">✗ collapses · 23%</text>
+  <rect class="box learn" x="472" y="44" width="120" height="58" rx="8"/>
+  <text class="m" x="532.0" y="69" text-anchor="middle">Encoder</text>
+  <text class="s" x="532.0" y="86" text-anchor="middle">sees shown part</text>
+  <rect class="box learn" x="618" y="44" width="110" height="58" rx="8"/>
+  <text class="m" x="673.0" y="69" text-anchor="middle">Predictor</text>
+  <text class="s" x="673.0" y="86" text-anchor="middle">guess</text>
+  <rect class="box loss" x="774" y="90" width="110" height="52" rx="8"/>
+  <text class="m" x="829.0" y="115" text-anchor="middle">Loss</text>
+  <text class="s" x="829.0" y="132" text-anchor="middle">guess vs target</text>
+  <rect class="box bad" x="618" y="132" width="110" height="58" rx="8"/>
+  <text class="m" x="673.0" y="157" text-anchor="middle">Same encoder</text>
+  <text class="s" x="673.0" y="174" text-anchor="middle">gets gradient</text>
+  <path class="a" d="M592,73 H616"/>
+  <path class="a" d="M728,73 C758,73 758,108 772,108"/>
+  <path class="a" d="M728,161 C758,161 758,126 772,126"/>
+  <path class="a" d="M532,102 V161 H616"/>
+  <text class="c" x="480" y="182" text-anchor="start">same weights,</text>
+  <text class="c" x="480" y="196" text-anchor="start">updated by the loss</text>
+  <path class="ar" d="M829,144 C829,204 778,209 730,182"/>
+  <text class="c r" x="884" y="218" text-anchor="end">the loss can move the target</text>
+  <rect class="box" x="4" y="240" width="440" height="222" rx="10" style="fill:none"/>
+  <text class="h" x="18" y="264" text-anchor="start">stopgrad-only</text>
+  <text class="m r" x="430" y="264" text-anchor="end">✗ collapses · 17%</text>
+  <rect class="box learn" x="18" y="280" width="120" height="58" rx="8"/>
+  <text class="m" x="78.0" y="305" text-anchor="middle">Encoder</text>
+  <text class="s" x="78.0" y="322" text-anchor="middle">sees shown part</text>
+  <rect class="box learn" x="164" y="280" width="110" height="58" rx="8"/>
+  <text class="m" x="219.0" y="305" text-anchor="middle">Predictor</text>
+  <text class="s" x="219.0" y="322" text-anchor="middle">guess</text>
+  <rect class="box loss" x="320" y="326" width="110" height="52" rx="8"/>
+  <text class="m" x="375.0" y="351" text-anchor="middle">Loss</text>
+  <text class="s" x="375.0" y="368" text-anchor="middle">guess vs target</text>
+  <rect class="box frozen" x="164" y="368" width="110" height="58" rx="8"/>
+  <text class="m" x="219.0" y="393" text-anchor="middle">Same encoder</text>
+  <text class="s" x="219.0" y="410" text-anchor="middle">no gradient</text>
+  <path class="a" d="M138,309 H162"/>
+  <path class="a" d="M274,309 C304,309 304,344 318,344"/>
+  <path class="a" d="M274,397 C304,397 304,362 318,362"/>
+  <path class="a" d="M78,338 V397 H162"/>
+  <text class="c" x="26" y="418" text-anchor="start">same weights,</text>
+  <text class="c" x="26" y="432" text-anchor="start">copied instantly</text>
+
+  <rect class="box" x="458" y="240" width="440" height="222" rx="10" style="fill:none"/>
+  <text class="h" x="472" y="264" text-anchor="start">sigreg  (LeJEPA)</text>
+  <text class="m g" x="884" y="264" text-anchor="end">✓ learns · 63%</text>
+  <rect class="box learn" x="472" y="280" width="120" height="58" rx="8"/>
+  <text class="m" x="532.0" y="305" text-anchor="middle">Encoder</text>
+  <text class="s" x="532.0" y="322" text-anchor="middle">sees shown part</text>
+  <rect class="box learn" x="618" y="280" width="110" height="58" rx="8"/>
+  <text class="m" x="673.0" y="305" text-anchor="middle">Predictor</text>
+  <text class="s" x="673.0" y="322" text-anchor="middle">guess</text>
+  <rect class="box loss" x="774" y="326" width="110" height="52" rx="8"/>
+  <text class="m" x="829.0" y="351" text-anchor="middle">Loss</text>
+  <text class="s" x="829.0" y="368" text-anchor="middle">guess vs target</text>
+  <rect class="box learn" x="618" y="368" width="110" height="58" rx="8"/>
+  <text class="m" x="673.0" y="393" text-anchor="middle">Same encoder</text>
+  <text class="s" x="673.0" y="410" text-anchor="middle">gets gradient</text>
+  <path class="a" d="M592,309 H616"/>
+  <path class="a" d="M728,309 C758,309 758,344 772,344"/>
+  <path class="a" d="M728,397 C758,397 758,362 772,362"/>
+  <path class="a" d="M532,338 V397 H616"/>
+  <text class="c" x="480" y="418" text-anchor="start">same weights</text>
+  <text class="c" x="480" y="432" text-anchor="start"></text>
+  <rect class="box good" x="764" y="392" width="130" height="52" rx="8"/>
+  <text class="m" x="829.0" y="417" text-anchor="middle">SIGReg</text>
+  <text class="s" x="829.0" y="434" text-anchor="middle">bell-curve spread</text>
+  <path class="a" d="M829,392 V380"/>
+  <text class="c" x="896" y="482" text-anchor="end">same model and data in all 4 runs · only the target changes · SIGReg at weight 0.005</text>
+  </g>
+</svg>

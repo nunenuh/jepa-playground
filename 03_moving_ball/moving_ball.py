@@ -24,6 +24,8 @@
 # calls", train on normal behaviour, and flag the step the model didn't expect.
 #
 # No dataset to download: the frames are generated in code.
+#
+# ![architecture](https://raw.githubusercontent.com/nunenuh/jepa-playground/main/03_moving_ball/assets/architecture-light.svg)
 
 # %%
 import copy

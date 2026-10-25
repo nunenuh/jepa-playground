@@ -12,6 +12,13 @@ is wrong: prediction error = *surprise* = anomaly score.
 
 No dataset to download: the clips are simulated in code, fresh every step.
 
+## Architecture
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/architecture-dark.svg">
+  <img alt="Moving-ball world model: 4 past frames to predicted next-frame latent" src="assets/architecture-light.svg">
+</picture>
+
 ## Setup
 
 | Part | What it is |
@@ -44,6 +51,14 @@ Surprise is flat while the physics is normal, then spikes exactly at frame 8
 when the anomaly happens. After a teleport it stays raised for a frame or two:
 the 4-frame context now contains the jump, so the next prediction is also off
 until the context is clean again.
+
+### The same clips as paths
+
+![paths](assets/paths.png)
+
+The ball's position frame by frame. After the 4 context frames (grey), dot
+size shows the surprise. Normal motion stays tiny; the teleport and the
+mid-air turn get a big dot exactly at frame 8.
 
 ### 1000 clips of each kind
 

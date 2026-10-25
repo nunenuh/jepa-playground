@@ -16,6 +16,14 @@ four ways to see what stops the cheat:
 | `stopgrad-only` | the encoder itself, detached | no | – |
 | `sigreg` | the encoder itself | **yes** | SIGReg (LeJEPA) |
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/variants-dark.svg">
+  <img alt="The 4 runs: where the target comes from in each" src="assets/variants-light.svg">
+</picture>
+
+The encoder, predictor and loss are the same in all 4 runs. Only the
+**target** changes: where it comes from, and whether the loss can push it.
+
 ## Results
 
 5 epochs per run, Colab T4, about 70 s per run.
@@ -31,6 +39,18 @@ four ways to see what stops the cheat:
 | random encoder, no training | – | – | 58.7% |
 
 Raw numbers: [`assets/results.json`](assets/results.json).
+
+### What collapse looks like
+
+![embeddings](assets/embeddings.png)
+
+Each dot is one test digit's embedding, squashed from 128-D to 2-D (PCA), on
+the **same scale** in every panel. The two collapsed runs put all 600 digits
+on (almost) one point: the encoder answers "the same" for every image.
+EMA and SIGReg keep the cloud spread out. Digits don't separate cleanly in
+2-D; the probe accuracy says how much digit information the full 128-D keeps.
+(From a re-run on Colab with the same seeds, numbers identical; SIGReg here
+uses weight 0.005. Data: [`assets/embeddings_2d.json`](assets/embeddings_2d.json).)
 
 ## What it shows
 

@@ -34,6 +34,8 @@
 #   trajectories, flag surprising steps. No attack labels at all.
 # - **Part B, pretraining + a small probe**: pretrain JEPA on all trajectories
 #   *without labels*, then train a linear classifier with a few labelled ones.
+#
+# ![architecture](https://raw.githubusercontent.com/nunenuh/jepa-playground/main/04_agent_guardrail/assets/architecture-light.svg)
 
 # %%
 import json

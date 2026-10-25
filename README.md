@@ -38,6 +38,9 @@ uv run --with torch --with torchvision --with matplotlib --with scikit-learn \
 `.py` files are the source; `.ipynb` notebooks are generated with
 `jupytext --to ipynb <file>.py`.
 
+Every experiment follows [EXPERIMENT_STANDARD.md](EXPERIMENT_STANDARD.md):
+architecture diagram, results with a baseline, intuitive pictures, raw numbers.
+
 ## Reading
 
 1. Meta AI blog — I-JEPA

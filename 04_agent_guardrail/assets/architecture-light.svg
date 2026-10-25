@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 910 345" width="910" height="345">
+  <rect x="0" y="0" width="910" height="345" rx="12" fill="#ffffff"/>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#52514e"/></marker>
+    <marker id="ahv" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6250d6"/></marker>
+    <marker id="ahr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#e34948"/></marker>
+  </defs>
+  <style>
+    text { fill: #0b0b0b; font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .box { fill: #ffffff; stroke: #c3c2b7; stroke-width: 1.5; }
+    .learn { stroke: #2a78d6; } .frozen { stroke: #6b6a65; stroke-dasharray: 4 3; } .loss { stroke: #e0622f; }
+    .bad { stroke: #e34948; } .good { stroke: #1baf7a; }
+    .m { font-size: 13px; font-weight: 600; }
+    .h { font-size: 14px; font-weight: 700; }
+    .s { font-size: 11.5px; fill: #52514e; font-family: ui-monospace, Menlo, Consolas, monospace; }
+    .c { font-size: 11px; fill: #6b6a65; font-family: ui-monospace, Menlo, Consolas, monospace; }
+    .v { fill: #6250d6; } .r { fill: #e34948; } .g { fill: #1baf7a; } .y { fill: #b07a00; }
+    .a { stroke: #52514e; stroke-width: 1.5; fill: none; marker-end: url(#ah); }
+    .ar { stroke: #e34948; stroke-width: 1.5; fill: none; marker-end: url(#ahr); }
+    .ema { stroke: #6250d6; stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; marker-end: url(#ahv); }
+  </style>
+  <g transform="translate(6,8)">
+  <rect class="box " x="4" y="120" width="150" height="80" rx="8"/>
+  <text class="m" x="79.0" y="145" text-anchor="middle">Agent run</text>
+  <text class="s" x="79.0" y="162" text-anchor="middle">task + steps</text>
+  <text class="c" x="79.0" y="178" text-anchor="middle">AgentDrift</text>
+  <rect class="box " x="180" y="120" width="160" height="80" rx="8"/>
+  <text class="m" x="260.0" y="145" text-anchor="middle">As text tokens</text>
+  <text class="s" x="260.0" y="162" text-anchor="middle">TASK · CALL · RESULT</text>
+  <text class="c" x="260.0" y="178" text-anchor="middle">names → &lt;USER&gt; …</text>
+  <path class="a" d="M154,160 H178"/>
+  <rect class="box frozen" x="366" y="120" width="140" height="80" rx="8"/>
+  <text class="m" x="436.0" y="145" text-anchor="middle">MiniLM</text>
+  <text class="s" x="436.0" y="162" text-anchor="middle">each → 384-D</text>
+  <text class="c" x="436.0" y="178" text-anchor="middle">frozen</text>
+  <path class="a" d="M340,160 H364"/>
+  <rect class="box learn" x="540" y="120" width="160" height="80" rx="8"/>
+  <text class="m" x="620.0" y="145" text-anchor="middle">JEPA</text>
+  <text class="s" x="620.0" y="162" text-anchor="middle">encoder + causal</text>
+  <text class="c" x="620.0" y="178" text-anchor="middle">predictor (next token)</text>
+  <path class="a" d="M506,160 H538"/>
+  <text class="c" x="540" y="108" text-anchor="start">trained with no labels</text>
+  <rect class="box bad" x="725" y="20" width="180" height="84" rx="8"/>
+  <text class="m" x="815.0" y="45" text-anchor="middle">A · Surprise alone</text>
+  <text class="s" x="815.0" y="62" text-anchor="middle">error of each call</text>
+  <text class="c" x="815.0" y="78" text-anchor="middle">✗ AUC 0.59</text>
+  <rect class="box good" x="725" y="216" width="180" height="84" rx="8"/>
+  <text class="m" x="815.0" y="241" text-anchor="middle">B · Pretrain + probe</text>
+  <text class="s" x="815.0" y="258" text-anchor="middle">few labelled runs</text>
+  <text class="c" x="815.0" y="274" text-anchor="middle">✓ AUC 0.88</text>
+  <path class="a" d="M700,145 C715,145 708,62 723,62"/>
+  <path class="a" d="M700,175 C715,175 708,258 723,258"/>
+  <text class="c" x="896" y="330" text-anchor="end">A: trained on normal runs only · B: probe reads the call latent, its prediction, the gap, and the raw MiniLM vectors</text>
+  </g>
+</svg>
