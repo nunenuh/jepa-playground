@@ -47,7 +47,7 @@ are held out: test runs (212 hijacked, 1,179 resisted, 975 benign) use tasks
 | Probe | linear, scores every call; run score = top call. AgentDojo only says *whether* a run was hijacked, so the loss is on the run score (multiple-instance learning) |
 | Negatives | benign **and** resisted, so the probe must learn "the agent did something bad", not "there is injected text" |
 
-Colab T4, about 3 minutes in total (plus the dataset download).
+Colab T4, about 8 minutes in total (plus the dataset download).
 
 ## Results
 
@@ -93,6 +93,31 @@ real runs without labels.
 | synthetic → real, raw+jepa | 0.722 | 0.757 | 4% |
 | real → real, raw+jepa (Q1) | 0.815 | 0.812 | 42% |
 
+### Q4: a probe that reads the whole run
+
+The linear probe judges one call (+ the task) at a time. The whole-run probe
+is a small bidirectional transformer over every token of the run (task,
+calls, results), so a call is scored *in context*. Same loss, same split,
+early stopping on the labelled validation split.
+
+![q4](assets/q4.png)
+
+| Labelled runs | linear, raw | linear, raw+jepa | **whole-run, raw** | **whole-run, raw+jepa** |
+|---|---|---|---|---|
+| 250 | 0.705 | 0.697 | 0.801 | **0.805** |
+| 1,000 | 0.750 | 0.734 | **0.865** | 0.838 |
+| 9,946 (all) | 0.806 | 0.815 | 0.827 | **0.831** |
+
+AUC hijacked vs resisted. With all labels, the whole-run probe on
+raw+jepa catches **61%** of hijacks (linear: 42%) at 8.0% benign / 6.1%
+resisted false alarms.
+
+![example context](assets/example_context.png)
+
+Same "pay the bill" pair as above. The attacker's payment now scores 3.57
+and the legitimate one 2.32 (linear probe: 3.00 vs 2.99): context helps, but
+the legitimate payment is still just over the alarm line (2.11).
+
 ### Q3: which agents are easiest to catch?
 
 ![per agent](assets/per_model.png)
@@ -129,17 +154,22 @@ pulls it back (spread ~1.1).
   threshold doesn't carry over: at 5% false alarms it catches only 4–19%.
 - **A linear probe learns *what kind* of action is risky, not *whether it
   fits the task*.** The example shows it: a legitimate payment scores as high
-  as the attacker's. Catching "wrong recipient" needs the probe to compare a
-  call with the task and the earlier results, which is the next step.
+  as the attacker's.
+- **Reading the whole run helps a lot** (Q4): +10 AUC points with 250–1,000
+  labels, and 61% vs 42% of hijacks caught with all labels. It starts to
+  separate the attacker's payment from the real one, but not fully yet.
+- **Once the probe reads context, JEPA features add little** (±2 points either
+  way): the transformer probe learns much of that context itself. JEPA's
+  clearest win stays the very-few-labels case (50 labels, Q1).
 - **Caveats.** One attack type (`important_instructions`); 3 label samples per
-  point; per-agent numbers rest on 11–35 hijacked runs; the dataset
+  point; the Q2 probe isn't seeded, so its numbers move by about ±0.01 between runs; per-agent numbers rest on 11–35 hijacked runs; the dataset
   download is ~500 MB.
 
 ## Experiments to try
 
 | Change | What you'll see |
 |---|---|
-| A small MLP or attention probe over the whole run | Whether "wrong recipient" becomes learnable |
+| Give the whole-run probe the bill's text explicitly (e.g. as a separate token) | Whether "wrong recipient" becomes fully learnable |
 | Other attacks (`ignore_previous`, `tool_knowledge`, ...) as extra test sets | Robustness to how the injection is phrased |
 | Hold out whole agents instead of tasks | Whether it works on an agent it never saw |
 | Fine-tune MiniLM inside the JEPA | Richer call features |

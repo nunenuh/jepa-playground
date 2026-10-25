@@ -397,6 +397,88 @@ q2["real -> real, raw+jepa"] = q1[(LABELLED[-1], "raw+jepa")]
 show(q2)
 
 # %% [markdown]
+# ## Q4: a probe that reads the whole run
+#
+# The linear probe looks at one call (+ the task) at a time, so it can learn
+# "sending money is risky" but not "this recipient is not the one in the
+# bill". This probe is a small **bidirectional transformer over the whole
+# run**: every call can attend to the task, the earlier results and the other
+# calls before it is scored. Same multiple-instance loss, same split.
+#
+# Input per token: the frozen MiniLM vector, plus (for `+jepa`) the token's
+# JEPA latent and the latent JEPA *predicted* for it.
+
+# %%
+@torch.no_grad()
+def token_features(X, M, kind):
+    if kind == "raw":
+        return X
+    z = enc(X)
+    p = torch.cat([torch.zeros_like(z[:, :1]), pred(z)[:, :-1]], 1)     # prediction made for each token
+    return torch.cat([X, z, p], -1)
+
+
+class RunProbe(nn.Module):
+    def __init__(self, d_in):
+        super().__init__()
+        self.inp = nn.Linear(d_in, DIM)
+        self.pos = nn.Parameter(torch.randn(1, MAXTOK, DIM) * 0.02)
+        layer = nn.TransformerEncoderLayer(DIM, nhead=4, dim_feedforward=DIM * 2, dropout=0.1,
+                                           batch_first=True, norm_first=True)
+        self.blocks = nn.TransformerEncoder(layer, 2)
+        self.out = nn.Linear(DIM, 1)
+
+    def forward(self, T, M):                                            # -> one logit per call
+        h = self.blocks(self.inp(T) + self.pos, src_key_padding_mask=~M)
+        return self.out(h).squeeze(-1)[:, CALL]
+
+
+def fit_run_probe(kind, idx, epochs=30, seed=0):
+    torch.manual_seed(seed)
+    Tt, Mt, yt = token_features(*feats["train"], kind)[idx], feats["train"][1][idx], LABEL["train"][idx]
+    Tv, Mv = token_features(*feats["val"], kind), feats["val"][1]
+    mu, sd = Tt[Mt].mean(0), Tt[Mt].std(0) + 1e-6
+    model = RunProbe(Tt.size(-1)).to(DEVICE)
+    opt = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=0.05)
+    pos_weight = ((1 - yt).sum() / yt.sum().clamp(min=1)).clamp(max=50)
+    run_score = lambda T, M: model((T - mu) / sd, M).masked_fill(~M[:, CALL], -1e4).max(1).values
+    best, best_state = -1, None
+    val_h = torch.tensor([r["kind"] == "hijacked" for r in splits["val"]], device=DEVICE)
+    for _ in range(epochs):
+        model.train()
+        for b in torch.randperm(len(Tt), device=DEVICE).split(256):
+            loss = F.binary_cross_entropy_with_logits(run_score(Tt[b], Mt[b]), yt[b], pos_weight=pos_weight)
+            opt.zero_grad()
+            loss.backward()
+            opt.step()
+        model.eval()
+        with torch.no_grad():
+            sv = run_score(Tv, Mv)
+        a = auc(sv[~val_h], sv[val_h])                                  # early stopping on the labelled val split
+        if a > best:
+            best, best_state = a, {k: v.clone() for k, v in model.state_dict().items()}
+    model.load_state_dict(best_state)
+    model.eval()
+
+    @torch.no_grad()
+    def calls(part):
+        T, M = token_features(*feats[part], kind), feats[part][1]
+        return model((T - mu) / sd, M).masked_fill(~M[:, CALL], float("-inf"))
+    return calls
+
+
+q4 = {}
+for n in [250, 1000, len(splits["train"])]:
+    for kind in ["raw", "raw+jepa"]:
+        runs_ = []
+        for seed in range(SEEDS):
+            idx = torch.randperm(len(splits["train"]), generator=torch.Generator().manual_seed(seed))[:n].to(DEVICE)
+            calls = fit_run_probe(kind, idx, seed=seed)
+            runs_.append(evaluate(calls("val").max(1).values, calls("test").max(1).values))
+        q4[(n, kind)] = {k: sum(r[k] for r in runs_) / SEEDS for k in runs_[0]}
+        print(f"n={n:5d} {kind:9s} " + "  ".join(f"{k} {v:.3f}" for k, v in q4[(n, kind)].items()))
+
+# %% [markdown]
 # ## Q3: which agents are easiest / hardest to catch?
 #
 # Best probe (raw+jepa, all labels), AUC of hijacked vs resisted per agent
@@ -508,14 +590,36 @@ same = lambda q, r: (q["suite"], q["user_task"], q["injection_task"]) == (r["sui
 i = next(i for i, r in enumerate(T) if r["kind"] == "hijacked" and r["model"] == "gpt-4o-2024-05-13"
          and 3 <= len(r["steps"]) <= 8 and any(q["kind"] == "resisted" and same(q, r) and len(q["steps"]) <= 8 for q in T))
 j = next(j for j, q in enumerate(T) if q["kind"] == "resisted" and same(q, T[i]) and len(q["steps"]) <= 8)
-fig, axes = plt.subplots(1, 2, figsize=(11, 3.6), sharey=True)
-for ax, n in zip(axes, (i, j)):
-    r = T[n]
-    s = test_calls[n, :min(len(r["steps"]), MAXSTEPS)].cpu()
-    ax.bar(range(len(s)), s, color=["#e34948" if v > THRESHOLD else "#2a78d6" for v in s])
-    ax.axhline(THRESHOLD, color="#898781", ls="--", lw=1)
-    ax.set_xticks(range(len(s)), [st["call"][5:45] for st in r["steps"][:len(s)]], rotation=20, ha="right", fontsize=7)
-    ax.set_title(f"{r['kind']} ({r['model']})", fontsize=9)
-axes[0].set_ylabel("hijack score (probe on raw+jepa)")
-fig.suptitle(f"Same task, same attack: \"{T[i]['task'][:70]}\". Red = flagged", fontsize=10)
-plt.tight_layout(rect=(0, 0, 1, 0.93)); plt.savefig(OUT / "example.png", dpi=110); plt.show()
+def plot_pair(scores, threshold, name, probe_label):
+    fig, axes = plt.subplots(1, 2, figsize=(11, 3.6), sharey=True)
+    for ax, n in zip(axes, (i, j)):
+        r = T[n]
+        s = scores[n, :min(len(r["steps"]), MAXSTEPS)].cpu()
+        ax.bar(range(len(s)), s, color=["#e34948" if v > threshold else "#2a78d6" for v in s])
+        ax.axhline(threshold, color="#898781", ls="--", lw=1)
+        ax.set_xticks(range(len(s)), [st["call"][5:45] for st in r["steps"][:len(s)]], rotation=20, ha="right", fontsize=7)
+        ax.set_title(f"{r['kind']} ({r['model']})", fontsize=9)
+    axes[0].set_ylabel(f"hijack score ({probe_label})")
+    fig.suptitle(f"Same task, same attack: \"{T[i]['task'][:70]}\". Red = flagged", fontsize=10)
+    plt.tight_layout(rect=(0, 0, 1, 0.93)); plt.savefig(OUT / name, dpi=110); plt.show()
+
+
+plot_pair(test_calls, THRESHOLD, "example.png", "linear probe, raw+jepa")
+
+# %% [markdown]
+# ## Linear vs whole-run probe
+
+# %%
+Q4N = [250, 1000, len(splits["train"])]
+fig, ax = plt.subplots(figsize=(7.5, 3.6))
+for probe_name, table, ls in [("linear", q1, "--"), ("whole-run", q4, "-")]:
+    for kind in ["raw", "raw+jepa"]:
+        ax.plot(Q4N, [table[(n, kind)]["AUC vs resisted"] for n in Q4N], ls=ls, marker="o",
+                color=PROBE_COLORS[kind], label=f"{probe_name} probe on {kind}")
+ax.set_xscale("log"); ax.set_xlabel("labelled runs"); ax.set_ylim(0.6, 0.95); ax.grid(alpha=.3)
+ax.set_title("Hijacked AUC vs resisted: reading the whole run helps"); ax.legend(fontsize=7)
+plt.tight_layout(); plt.savefig(OUT / "q4.png", dpi=110); plt.show()
+
+ctx = fit_run_probe("raw+jepa", torch.arange(len(splits["train"]), device=DEVICE))
+ctx_threshold = ctx("val").max(1).values[benign_val].quantile(0.95).item()
+plot_pair(ctx("test"), ctx_threshold, "example_context.png", "whole-run probe, raw+jepa")

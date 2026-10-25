@@ -41,7 +41,7 @@
   <path class="a" d="M486,160 H510"/>
   <rect class="box good" x="700" y="120" width="200" height="80" rx="8"/>
   <text class="m" x="800.0" y="145" text-anchor="middle">Probe → run score</text>
-  <text class="s" x="800.0" y="162" text-anchor="middle">max over calls</text>
+  <text class="s" x="800.0" y="162" text-anchor="middle">linear or whole-run (Q4)</text>
   <text class="c" x="800.0" y="178" text-anchor="middle">Q1: real labels</text>
   <path class="a" d="M662,160 H698"/>
   <rect class="box frozen" x="700" y="236" width="200" height="70" rx="8"/>
