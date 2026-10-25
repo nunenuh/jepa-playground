@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 910 345" width="910" height="345">
+  <rect x="0" y="0" width="910" height="345" rx="12" fill="#0d1117"/>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#c3c2b7"/></marker>
+    <marker id="ahv" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9085e9"/></marker>
+    <marker id="ahr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#ff6b6a"/></marker>
+  </defs>
+  <style>
+    text { fill: #f0efec; font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .box { fill: #161b22; stroke: #3d444d; stroke-width: 1.5; }
+    .learn { stroke: #3987e5; } .frozen { stroke: #9a9890; stroke-dasharray: 4 3; } .loss { stroke: #e0622f; }
+    .bad { stroke: #ff6b6a; } .good { stroke: #3fd29b; }
+    .m { font-size: 13px; font-weight: 600; }
+    .h { font-size: 14px; font-weight: 700; }
+    .s { font-size: 11.5px; fill: #c3c2b7; font-family: ui-monospace, Menlo, Consolas, monospace; }
+    .c { font-size: 11px; fill: #9a9890; font-family: ui-monospace, Menlo, Consolas, monospace; }
+    .v { fill: #9085e9; } .r { fill: #ff6b6a; } .g { fill: #3fd29b; } .y { fill: #f0b429; }
+    .a { stroke: #c3c2b7; stroke-width: 1.5; fill: none; marker-end: url(#ah); }
+    .ar { stroke: #ff6b6a; stroke-width: 1.5; fill: none; marker-end: url(#ahr); }
+    .ema { stroke: #9085e9; stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; marker-end: url(#ahv); }
+  </style>
+  <g transform="translate(6,8)">
+  <rect class="box " x="4" y="40" width="170" height="70" rx="8"/>
+  <text class="m" x="89.0" y="65" text-anchor="middle">IntPhys 2 pair</text>
+  <text class="s" x="89.0" y="82" text-anchor="middle">same scene, twice</text>
+  <text class="c" x="89.0" y="98" text-anchor="middle">possible / impossible</text>
+  <rect class="box " x="4" y="215" width="170" height="70" rx="8"/>
+  <text class="m" x="89.0" y="240" text-anchor="middle">Sliding windows</text>
+  <text class="s" x="89.0" y="257" text-anchor="middle">6 fps, 16 frames</text>
+  <text class="c" x="89.0" y="273" text-anchor="middle">12 context → 4 predicted</text>
+  <path class="a" d="M89,110 V213"/>
+  <rect class="box frozen" x="214" y="120" width="160" height="70" rx="8"/>
+  <text class="m" x="294.0" y="145" text-anchor="middle">V-JEPA 2 encoder</text>
+  <text class="s" x="294.0" y="162" text-anchor="middle">frozen, ViT-L</text>
+  <text class="c" x="294.0" y="178" text-anchor="middle">past only + whole clip</text>
+  <path class="a" d="M174,250 C200,250 190,170 212,160"/>
+  <rect class="box frozen" x="414" y="40" width="170" height="70" rx="8"/>
+  <text class="m" x="499.0" y="65" text-anchor="middle">Predictor, zero-shot</text>
+  <text class="s" x="499.0" y="82" text-anchor="middle">as released</text>
+  <rect class="box learn" x="414" y="215" width="170" height="70" rx="8"/>
+  <text class="m" x="499.0" y="240" text-anchor="middle">Predictor, adapted</text>
+  <text class="s" x="499.0" y="257" text-anchor="middle">on possible videos</text>
+  <text class="c" x="499.0" y="273" text-anchor="middle">other half of scenes</text>
+  <path class="a" d="M374,145 C395,145 392,75 412,75"/>
+  <path class="a" d="M374,165 C395,165 392,250 412,250"/>
+  <rect class="box loss" x="624" y="120" width="140" height="70" rx="8"/>
+  <text class="m" x="694.0" y="145" text-anchor="middle">Peak surprise</text>
+  <text class="s" x="694.0" y="162" text-anchor="middle">max over windows</text>
+  <text class="c" x="694.0" y="178" text-anchor="middle">per video</text>
+  <path class="a" d="M584,75 C610,75 610,130 622,140"/>
+  <path class="a" d="M584,250 C610,250 610,180 622,170"/>
+  <text class="c" x="780" y="150" text-anchor="start">correct if</text>
+  <text class="c" x="780" y="164" text-anchor="start">impossible ></text>
+  <text class="c" x="780" y="178" text-anchor="start">possible</text>
+  <text class="c" x="896" y="335" text-anchor="end">506 pairs · 4 conditions: permanence, immutability, continuity, solidity</text>
+  </g>
+</svg>

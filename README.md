@@ -18,6 +18,7 @@ learn meaning (shape, structure, what happens next) and ignore noise.
 | 05 | [Guardrail on real agents](05_real_agents/) | The 04 recipe on 29 real LLM agents (AgentDojo); synthetic → real transfer | ✅ | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nunenuh/jepa-playground/blob/main/05_real_agents/real_agents.ipynb) |
 | 06 | [V-JEPA 2 on real video](06_vjepa2_video/) | Zero-shot CCTV anomaly detection with Meta's 300M V-JEPA 2 world model (UCSD Ped2) | ✅ | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nunenuh/jepa-playground/blob/main/06_vjepa2_video/vjepa2_anomaly.ipynb) |
 | 07 | [Physically impossible video](07_physical_anomalies/) | V-JEPA 2 surprise on real clips edited to break physics (teleport, reverse, freeze, vanish) | ✅ | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nunenuh/jepa-playground/blob/main/07_physical_anomalies/physical_anomalies.ipynb) |
+| 08 | [IntPhys 2](08_intphys2/) | V-JEPA 2 surprise on Meta's intuitive-physics benchmark (permanence, immutability, continuity, solidity) | ✅ | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nunenuh/jepa-playground/blob/main/08_intphys2/intphys2.ipynb) |
 
 ## Results
 
@@ -30,6 +31,7 @@ learn meaning (shape, structure, what happens next) and ignore noise.
 | 05 | hijacked vs resisted AUC 0.61 (raw, 50 labels) | **0.75** (JEPA, 50 labels) · **0.94** with argument sources (~80% caught at 5% false alarms; AUC 0.90–0.99 on unseen attack types) · 0.77 trained on synthetic only | AgentDojo, unseen tasks + unseen attacker goals, Colab T4. [Details and figures](05_real_agents/README.md) |
 | 06 | anomaly AUC 0.474 (raw top-5 surprise, drowned by foliage) | **0.683** (spatially calibrated surprise) · **0.832** top-5 / **0.925** whole-frame (seen-before latent bank) · adapting the predictor: prediction −24% error, detection no better | UCSD Ped2, zero-shot + predictor fine-tune (`facebook/vjepa2-vitl-fpc64-256`), Colab T4 (~16 min). [Details and figures](06_vjepa2_video/README.md) |
 | 07 | zero-shot surprise AUC 0.19 (reverse) / 0.32 (freeze) | **0.96–1.00** on all 4 types with the adapted predictor | Ped2 clips edited to break physics, Colab T4 (~17 min). [Details and figures](07_physical_anomalies/README.md) |
+| 08 | pairwise accuracy 50.2% zero-shot (chance) | 47.0% adapted: no gain; paper's ViT-huge 57.5% | IntPhys 2 main set, 506 pairs, Colab T4 (~80 min). [Details and figures](08_intphys2/README.md) |
 
 ## Run
 
