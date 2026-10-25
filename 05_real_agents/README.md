@@ -47,7 +47,7 @@ are held out: test runs (212 hijacked, 1,179 resisted, 975 benign) use tasks
 | Probe | linear, scores every call; run score = top call. AgentDojo only says *whether* a run was hijacked, so the loss is on the run score (multiple-instance learning) |
 | Negatives | benign **and** resisted, so the probe must learn "the agent did something bad", not "there is injected text" |
 
-Colab T4, about 12 minutes in total (plus the dataset download).
+Colab T4, about 15 minutes in total (plus the dataset download).
 
 ## Results
 
@@ -144,6 +144,49 @@ transaction to US133… that includes…"* (the injected instruction), the real
 one from *"recipient: US122…"*. Now only the attacker's payment is flagged
 (5.0 vs −13.8 and −12.4).
 
+### Q6: fewer false alarms
+
+With all labels, Q5 flagged 9–15% of benign test runs although the alarm
+line was set for 5%. Tried: averaging 3 probes (ensemble), and setting the
+line on *benign + resisted* validation runs instead of benign only.
+
+| Labelled | Probe | Line set on | AUC | Hijacks caught | Benign flagged | Resisted flagged |
+|---|---|---|---|---|---|---|
+| 1,000 | single | benign | 0.937 | 70% | **2.4%** | **3.6%** |
+| 1,000 | single | benign + resisted | 0.937 | 81% | 4.5% | 8.1% |
+| 1,000 | ensemble | benign | **0.942** | 82% | 7.7% | 8.1% |
+| all | single | benign | 0.850 | 68% | 5.2% | 8.3% |
+| all | ensemble | benign | 0.898 | 74% | 8.4% | 14.8% |
+
+![q6 q7](assets/q6_q7.png)
+
+Left: catch rate vs false alarms on the test runs, so every probe is compared
+at the *same* false-alarm rate. At 5% false alarms, the single probe on 1,000
+labels catches **~80%** of hijacks; the ensemble has the higher AUC but is
+worse at low false-alarm rates (~67%). Training on all labels is worse at
+every point: more labels made this probe less stable, not better.
+
+The alarm line itself moves between validation and test because it rests on
+few runs (5% of 339 benign validation runs ≈ 17 runs). The real fix is a
+larger validation set.
+
+### Q7: other attack types
+
+Right: the Q6 ensemble (1,000 labels), trained only on the
+`important_instructions` attack, tested unchanged on other attack phrasings
+(test tasks and test goals only; `injecagent` had too few hijacks to score).
+
+| Attack | Hijacked / resisted | AUC vs resisted | Hijacks caught | Resisted flagged |
+|---|---|---|---|---|
+| direct | 6 / 314 | 0.988 | 100% | 6.4% |
+| ignore_previous | 15 / 305 | 0.902 | 67% | 9.2% |
+| tool_knowledge | 19 / 31 | 0.976 | 79% | 6.5% |
+| important_instructions_no_names | 22 / 28 | 0.924 | 82% | 14.3% |
+| important_instructions (trained on) | 212 / 1,179 | 0.942 | 83% | 8.4% |
+
+It holds up on phrasings it never saw (AUC 0.90–0.99). Counts are small
+(6–22 hijacks), so these are encouraging, not proof.
+
 ### Q3: which agents are easiest to catch?
 
 ![per agent](assets/per_model.png)
@@ -189,10 +232,14 @@ pulls it back (spread ~1.1).
 - **Knowing where arguments came from is the biggest win** (Q5): AUC 0.93 with
   1,000 labels, and the "wrong recipient" case is solved in the example. With
   sources, JEPA features help again at 250–1,000 labels (+1.6 to +2.7 points).
-- **More labels isn't always better here.** With all labels, Q5 drops a little
-  and flags more benign runs (9–15%): early stopping picks the best val AUC,
-  but the alarm threshold moves between splits. Calibration is the next
-  thing to fix.
+- **More labels isn't always better here.** With all labels the probe is less
+  stable (Q6: worse at every false-alarm rate). 1,000 labels is the sweet spot.
+- **Best operating point: ~80% of hijacks caught at 5% false alarms** (Q6,
+  single probe, 1,000 labels). The alarm line still drifts between
+  validation and test; a larger validation set would fix that.
+- **It transfers to other attack phrasings** (Q7: AUC 0.90–0.99), because it
+  looks at *where the agent's arguments came from*, not at how the injection
+  was worded.
 - **Caveats.** One attack type (`important_instructions`); 3 label samples per
   point; the Q2 probe isn't seeded, so its numbers move by about ±0.01 between runs; per-agent numbers rest on 11–35 hijacked runs; the dataset
   download is ~500 MB.
@@ -201,7 +248,7 @@ pulls it back (spread ~1.1).
 
 | Change | What you'll see |
 |---|---|
-| Calibrate the threshold (e.g. on resisted val runs too) | Fewer false alarms with all labels |
+| A larger validation split (e.g. 25% of train tasks) | A steadier alarm line |
 | Sources at the level of each value (not only the first found) | Calls that mix safe and injected values |
 | Other attacks (`ignore_previous`, `tool_knowledge`, ...) as extra test sets | Robustness to how the injection is phrased |
 | Hold out whole agents instead of tasks | Whether it works on an agent it never saw |

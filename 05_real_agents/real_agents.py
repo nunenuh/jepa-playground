@@ -64,11 +64,11 @@ if not (DOJO / "runs").exists():
     subprocess.run(["git", "-C", str(DOJO), "checkout", "-q", DOJO_COMMIT], check=True)
 
 
-def load_runs(root):
+def load_runs(root, attacks=("none", "important_instructions")):
     rows = []
     for f in sorted(root.glob("runs/*/*/*/*/*.json")):
         model, suite, user_task, attack = f.parts[-5:-1]
-        if attack not in ("none", "important_instructions"):
+        if attack not in attacks:
             continue
         d = json.loads(f.read_text())
         if d.get("error") or not d.get("messages"):
@@ -85,7 +85,7 @@ def load_runs(root):
             continue
         task = next((m["content"] for m in d["messages"] if m["role"] == "user"), "")
         kind = "benign" if attack == "none" else ("hijacked" if d.get("security") else "resisted")
-        rows.append(dict(model=model, suite=suite, user_task=user_task, injection_task=d.get("injection_task_id"),
+        rows.append(dict(model=model, suite=suite, user_task=user_task, injection_task=d.get("injection_task_id"), attack=attack,
                          kind=kind, task=task if isinstance(task, str) else json.dumps(task), steps=steps))
     return rows
 
@@ -572,7 +572,7 @@ def token_features(X, M, kind):
     base = _token_features(X, M, kind.replace("+src", ""))
     if not kind.endswith("+src"):
         return base
-    part = next(p for p in splits if feats[p][0] is X)
+    part = next(p for p in feats if feats[p][0] is X)
     return torch.cat([base, SRC[part]], -1)
 
 
@@ -586,6 +586,87 @@ for n in [250, 1000, len(splits["train"])]:
             runs_.append(evaluate(calls("val").max(1).values, calls("test").max(1).values))
         q5[(n, kind)] = {k: sum(r[k] for r in runs_) / SEEDS for k in runs_[0]}
         print(f"n={n:5d} {kind:13s} " + "  ".join(f"{k} {v:.3f}" for k, v in q5[(n, kind)].items()))
+
+# %% [markdown]
+# ## Q6: fewer false alarms
+#
+# With all labels, Q5 flagged 9–15% of benign test runs instead of the 5% we
+# aimed for. Two fixes:
+# - **Ensemble**: average the per-call scores of the 3 probes (3 label
+#   samples / seeds) instead of trusting one. Less variance.
+# - **Threshold on all negatives**: set the alarm line so 5% of *benign and
+#   resisted* validation runs are flagged, not benign only.
+
+# %%
+def ensemble(kind, n):
+    probes = []
+    for seed in range(SEEDS):
+        idx = torch.randperm(len(splits["train"]), generator=torch.Generator().manual_seed(seed))[:n].to(DEVICE)
+        probes.append(fit_run_probe(kind, idx, seed=seed))
+    return lambda part: torch.stack([p(part) for p in probes]).mean(0)
+
+
+def operating_point(calls, negatives):
+    """Threshold flags 5% of the given negative kinds on val; report test numbers."""
+    sv, st = calls("val").max(1).values, calls("test").max(1).values
+    neg = torch.tensor([r["kind"] in negatives for r in splits["val"]], device=DEVICE)
+    threshold = sv[neg].quantile(0.95)
+    of = lambda k: st[torch.tensor([r["kind"] == k for r in splits["test"]], device=DEVICE)]
+    return {"AUC vs resisted": auc(of("resisted"), of("hijacked")),
+            "recall hijacked": (of("hijacked") > threshold).float().mean().item(),
+            "flag rate benign": (of("benign") > threshold).float().mean().item(),
+            "flag rate resisted": (of("resisted") > threshold).float().mean().item()}
+
+
+KIND = "raw+jepa+src"
+q6, roc = {}, {}
+for n in [1000, len(splits["train"])]:
+    single = fit_run_probe(KIND, torch.randperm(len(splits["train"]), generator=torch.Generator().manual_seed(0))[:n].to(DEVICE))
+    ens = ensemble(KIND, n)
+    for name, calls in [("single", single), ("ensemble", ens)]:
+        for rule, negs in [("benign", {"benign"}), ("benign+resisted", {"benign", "resisted"})]:
+            q6[(n, name, rule)] = operating_point(calls, negs)
+            print(f"n={n:5d} {name:8s} threshold on {rule:15s} " + "  ".join(f"{k} {v:.3f}" for k, v in q6[(n, name, rule)].items()))
+        st = calls("test").max(1).values                                   # recall vs false-alarm curve on test
+        h = st[torch.tensor([r["kind"] == "hijacked" for r in splits["test"]], device=DEVICE)]
+        negs_t = st[torch.tensor([r["kind"] != "hijacked" for r in splits["test"]], device=DEVICE)]
+        cuts = negs_t.quantile(torch.linspace(0.5, 0.999, 60, device=DEVICE))
+        roc[(n, name)] = [((negs_t > c).float().mean().item(), (h > c).float().mean().item()) for c in cuts]
+
+# %% [markdown]
+# ## Q7: other attack types
+#
+# Everything so far was trained and tested on one attack phrasing
+# (`important_instructions`). AgentDojo also ran other phrasings. We take the
+# **Q6 ensemble trained on 1,000 labelled runs** and test it, unchanged, on
+# each other attack, using only test tasks and test goals.
+
+# %%
+OTHER_ATTACKS = ["direct", "ignore_previous", "tool_knowledge", "injecagent", "important_instructions_no_names"]
+test_tasks = {(r["suite"], r["user_task"]) for r in splits["test"]}
+test_goals = {(r["suite"], r["injection_task"]) for r in splits["test"] if r["injection_task"]}
+other = [r for r in load_runs(DOJO, tuple(OTHER_ATTACKS))
+         if (r["suite"], r["user_task"]) in test_tasks and (r["suite"], r["injection_task"]) in test_goals]
+best = ensemble(KIND, 1000)
+sv = best("val").max(1).values
+threshold = sv[torch.tensor([r["kind"] != "hijacked" for r in splits["val"]], device=DEVICE)].quantile(0.95)
+q7 = {}
+for attack in OTHER_ATTACKS + ["important_instructions"]:
+    rows = splits["test"] if attack == "important_instructions" else [r for r in other if r["attack"] == attack]
+    rows = [r for r in rows if r["kind"] != "benign"]
+    name = f"attack_{attack}"
+    if attack != "important_instructions":
+        feats[name], SRC[name] = featurize(rows), source_features(rows)
+        s = best(name).max(1).values
+    else:
+        s = best("test").max(1).values[torch.tensor([r["kind"] != "benign" for r in splits["test"]], device=DEVICE)]
+    y = torch.tensor([r["kind"] == "hijacked" for r in rows], device=DEVICE)
+    if y.sum() < 5 or (~y).sum() < 5:
+        continue
+    q7[attack] = {"hijacked": int(y.sum()), "resisted": int((~y).sum()), "AUC vs resisted": auc(s[~y], s[y]),
+                  "recall hijacked": (s[y] > threshold).float().mean().item(),
+                  "flag rate resisted": (s[~y] > threshold).float().mean().item()}
+    print(f"{attack:34s} " + "  ".join(f"{k} {v:.3f}" if isinstance(v, float) else f"{k} {v}" for k, v in q7[attack].items()))
 
 # %% [markdown]
 # ## Q3: which agents are easiest / hardest to catch?
@@ -737,3 +818,21 @@ plot_pair(ctx("test"), ctx_threshold, "example_context.png", "whole-run probe, r
 src_probe = fit_run_probe("raw+jepa+src", torch.randperm(len(splits["train"]), generator=torch.Generator().manual_seed(0))[:1000].to(DEVICE))
 src_threshold = src_probe("val").max(1).values[benign_val].quantile(0.95).item()
 plot_pair(src_probe("test"), src_threshold, "example_source.png", "whole-run probe + argument sources")
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 3.8))
+for (n, name), pts in roc.items():
+    fa, rc = zip(*pts)
+    axes[0].plot(fa, rc, ls="-" if name == "ensemble" else "--", color="#1baf7a" if n == 1000 else "#2a78d6",
+                 label=f"{name}, {n} labels")
+axes[0].axvline(0.05, color="#898781", ls=":", lw=1)
+axes[0].set_xlim(0, 0.3); axes[0].set_ylim(0, 1); axes[0].grid(alpha=.3)
+axes[0].set_xlabel("false alarms (benign + resisted test runs)"); axes[0].set_ylabel("hijacks caught")
+axes[0].set_title("Q6: catch rate vs false alarms"); axes[0].legend(fontsize=7)
+names = list(q7)
+x = range(len(names))
+axes[1].bar([i - 0.2 for i in x], [q7[a]["AUC vs resisted"] for a in names], 0.4, color="#1baf7a", label="AUC vs resisted")
+axes[1].bar([i + 0.2 for i in x], [q7[a]["recall hijacked"] for a in names], 0.4, color="#e34948", label="hijacks caught")
+axes[1].set_xticks(list(x), [f"{a}\n({q7[a]['hijacked']} hijacked)" for a in names], rotation=25, ha="right", fontsize=7)
+axes[1].set_ylim(0, 1.15); axes[1].legend(fontsize=7, loc="upper center", ncol=2)
+axes[1].set_title("Q7: trained on important_instructions, tested on other attacks", fontsize=10)
+plt.tight_layout(); plt.savefig(OUT / "q6_q7.png", dpi=110); plt.show()
