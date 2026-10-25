@@ -12,7 +12,7 @@ learn meaning (shape, structure, what happens next) and ignore noise.
 | # | Experiment | What it teaches | Status | Open |
 |---|---|---|---|---|
 | 01 | [MNIST JEPA](01_mnist_jepa/) | Latent prediction, context vs target encoder, EMA, linear probe | ✅ | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nunenuh/jepa-playground/blob/main/01_mnist_jepa/mnist_jepa.ipynb) |
-| 02 | [Collapse on purpose](02_collapse/) | Why JEPA needs anti-collapse (EMA, stop-gradient, SIGReg) | 🧪 written, not run yet | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nunenuh/jepa-playground/blob/main/02_collapse/collapse.ipynb) |
+| 02 | [Collapse on purpose](02_collapse/) | Why JEPA needs anti-collapse (EMA, stop-gradient, SIGReg) | ✅ | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nunenuh/jepa-playground/blob/main/02_collapse/collapse.ipynb) |
 | 03 | Moving-ball world model | Predicting the future in latent space; anomaly = surprise | ⏳ | |
 | 04 | Agent tool-call guardrail | JEPA on agent trajectories to catch prompt injection / exfiltration | ⏳ | |
 
@@ -21,6 +21,7 @@ learn meaning (shape, structure, what happens next) and ignore noise.
 | # | Probe accuracy before | Probe accuracy after | Setup |
 |---|---|---|---|
 | 01 | 56.1% (random encoder) | 82.7% | 10 epochs, no labels, RTX A2000 (~2 min). [Details and figures](01_mnist_jepa/README.md) |
+| 02 | 58.7% (random encoder) | EMA 61.4% · SIGReg 63.1% · no anti-collapse 17–23% | 5 epochs per run, Colab T4. [Details and figures](02_collapse/README.md) |
 
 ## Run
 
