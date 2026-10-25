@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 910 345" width="910" height="345">
+  <rect x="0" y="0" width="910" height="345" rx="12" fill="#0d1117"/>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#c3c2b7"/></marker>
+    <marker id="ahv" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9085e9"/></marker>
+    <marker id="ahr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#ff6b6a"/></marker>
+  </defs>
+  <style>
+    text { fill: #f0efec; font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .box { fill: #161b22; stroke: #3d444d; stroke-width: 1.5; }
+    .learn { stroke: #3987e5; } .frozen { stroke: #9a9890; stroke-dasharray: 4 3; } .loss { stroke: #e0622f; }
+    .bad { stroke: #ff6b6a; } .good { stroke: #3fd29b; }
+    .m { font-size: 13px; font-weight: 600; }
+    .h { font-size: 14px; font-weight: 700; }
+    .s { font-size: 11.5px; fill: #c3c2b7; font-family: ui-monospace, Menlo, Consolas, monospace; }
+    .c { font-size: 11px; fill: #9a9890; font-family: ui-monospace, Menlo, Consolas, monospace; }
+    .v { fill: #9085e9; } .r { fill: #ff6b6a; } .g { fill: #3fd29b; } .y { fill: #f0b429; }
+    .a { stroke: #c3c2b7; stroke-width: 1.5; fill: none; marker-end: url(#ah); }
+    .ar { stroke: #ff6b6a; stroke-width: 1.5; fill: none; marker-end: url(#ahr); }
+    .ema { stroke: #9085e9; stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; marker-end: url(#ahv); }
+  </style>
+  <g transform="translate(6,8)">
+  <rect class="box " x="4" y="28" width="136" height="66" rx="8"/>
+  <text class="m" x="72.0" y="53" text-anchor="middle">12 past frames</text>
+  <text class="s" x="72.0" y="70" text-anchor="middle">12 × 256 × 256</text>
+  <text class="c" x="72.0" y="86" text-anchor="middle">t-11 … t</text>
+  <rect class="box " x="4" y="218" width="136" height="66" rx="8"/>
+  <text class="m" x="72.0" y="243" text-anchor="middle">4 next frames</text>
+  <text class="s" x="72.0" y="260" text-anchor="middle">4 × 256 × 256</text>
+  <text class="c" x="72.0" y="276" text-anchor="middle">t+1 … t+4</text>
+  <rect class="box frozen" x="176" y="28" width="154" height="66" rx="8"/>
+  <text class="m" x="253.0" y="53" text-anchor="middle">V-JEPA 2 encoder</text>
+  <text class="s" x="253.0" y="70" text-anchor="middle">6 × 16 × 16 × 1024</text>
+  <text class="c" x="253.0" y="86" text-anchor="middle">ViT-L, frozen</text>
+  <rect class="box frozen" x="176" y="218" width="154" height="66" rx="8"/>
+  <text class="m" x="253.0" y="243" text-anchor="middle">Same encoder</text>
+  <text class="s" x="253.0" y="260" text-anchor="middle">2 × 16 × 16 × 1024</text>
+  <text class="c" x="253.0" y="276" text-anchor="middle">real future latents</text>
+  <path class="a" d="M140,61 H174"/>
+  <path class="a" d="M140,251 H174"/>
+  <path class="ema" d="M253,96 V216"/>
+  <text class="c v" x="261" y="152" text-anchor="start">shared weights,</text>
+  <text class="c v" x="261" y="166" text-anchor="start">no fine-tuning</text>
+  <rect class="box frozen" x="368" y="28" width="154" height="66" rx="8"/>
+  <text class="m" x="445.0" y="53" text-anchor="middle">V-JEPA 2 predictor</text>
+  <text class="s" x="445.0" y="70" text-anchor="middle">→ 2 × 16 × 16 × 1024</text>
+  <text class="c" x="445.0" y="86" text-anchor="middle">frozen world model</text>
+  <path class="a" d="M330,61 H366"/>
+  <rect class="box loss" x="564" y="70" width="154" height="66" rx="8"/>
+  <text class="m" x="641.0" y="95" text-anchor="middle">Calibrated surprise</text>
+  <text class="s" x="641.0" y="112" text-anchor="middle">(|pred − real| − μ) / σ</text>
+  <text class="c" x="641.0" y="128" text-anchor="middle">16 × 16 map</text>
+  <rect class="box good" x="564" y="218" width="154" height="66" rx="8"/>
+  <text class="m" x="641.0" y="243" text-anchor="middle">Seen-before bank</text>
+  <text class="s" x="641.0" y="260" text-anchor="middle">nearest normal patch</text>
+  <text class="c" x="641.0" y="276" text-anchor="middle">588 train tubelets</text>
+  <path class="a" d="M522,61 C542,61 548,85 562,95"/>
+  <path class="a" d="M330,251 C440,251 510,130 562,115"/>
+  <path class="a" d="M330,251 H562"/>
+  <rect class="box bad" x="756" y="144" width="140" height="66" rx="8"/>
+  <text class="m" x="826.0" y="169" text-anchor="middle">Frame score</text>
+  <text class="s" x="826.0" y="186" text-anchor="middle">top-5 patches</text>
+  <text class="c" x="826.0" y="202" text-anchor="middle">anomaly vs normal</text>
+  <path class="a" d="M718,103 C738,103 744,155 754,168"/>
+  <path class="a" d="M718,251 C738,251 744,198 754,186"/>
+  <text class="c" x="896" y="322" text-anchor="end">zero-shot on UCSD Ped2 · μ, σ and memory bank from 16 normal training videos only</text>
+  </g>
+</svg>
