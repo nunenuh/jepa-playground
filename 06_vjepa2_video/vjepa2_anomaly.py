@@ -28,6 +28,7 @@
 # ![architecture](https://raw.githubusercontent.com/nunenuh/jepa-playground/main/06_vjepa2_video/assets/architecture-light.svg)
 
 # %%
+import json
 import tarfile
 import time
 import urllib.request
@@ -246,8 +247,10 @@ ax.set_title(f"Test video {name}: score over time")
 plt.tight_layout(); plt.savefig(OUT / "timeline.png", dpi=110); plt.show()
 
 # %%
-picks = [int(np.argmin(np.where(y, np.inf, scores["V-JEPA 2 surprise, calibrated"][name]))),
-         int(np.argmax(np.where(y, scores["V-JEPA 2 surprise, calibrated"][name], -np.inf)))]
+inner = np.zeros(len(y), dtype=bool)
+inner[T:len(y) - T] = True                                    # frames that were really predicted (not edge copies)
+cal = scores["V-JEPA 2 surprise, calibrated"][name]
+picks = [int(np.argmin(np.where(~y & inner, cal, np.inf))), int(np.argmax(np.where(y & inner, cal, -np.inf)))]
 vmax = float(maps["V-JEPA 2 surprise, calibrated"][name][picks].max())
 fig, axes = plt.subplots(1, 2, figsize=(10, 3.6))
 for ax, i, title in zip(axes, picks, ["normal frame", "anomalous frame"]):
@@ -289,17 +292,30 @@ raw_ex = maps["V-JEPA 2 surprise, raw"]["04"][picks[1]]
 cal_ex = maps["V-JEPA 2 surprise, calibrated"]["04"][picks[1]]
 sb_ex  = maps["seen-before baseline"]["04"][picks[1]]
 fig, axes = plt.subplots(1, 4, figsize=(11.5, 3.1))
+auc_top5 = {m: results[m]["AUC raw"] for m in results}
 for ax, m_img, title in [
-    (axes[0], MU.detach().cpu(), "Normal mean surprise μ\n(trees/edges always noisy)"),
-    (axes[1], raw_ex, f"Raw surprise (frame {picks[1]})\nAUC 0.474 (drowned by background)"),
-    (axes[2], cal_ex, f"Calibrated (s − μ)/σ (frame {picks[1]})\nAUC 0.683 (spots the cyclist)"),
-    (axes[3], sb_ex,  f"Seen-before baseline (frame {picks[1]})\nAUC 0.832 (nearest normal patch)"),
+    (axes[0], MU.detach().cpu(), "usual surprise μ on normal video"),
+    (axes[1], raw_ex, f"raw surprise (frame {picks[1]})\ntop-5 AUC {auc_top5['V-JEPA 2 surprise, raw']:.3f}"),
+    (axes[2], cal_ex, f"calibrated (s − μ)/σ (frame {picks[1]})\ntop-5 AUC {auc_top5['V-JEPA 2 surprise, calibrated']:.3f}"),
+    (axes[3], sb_ex,  f"seen-before (frame {picks[1]})\ntop-5 AUC {auc_top5['seen-before baseline']:.3f}"),
 ]:
     ax.imshow(frames[picks[1]])
     heat = F.interpolate(m_img.float()[None, None], size=frames.shape[1:3], mode="bilinear")[0, 0]
     ax.imshow(heat, cmap="inferno", alpha=0.55)
     ax.set_title(title, fontsize=8.5); ax.axis("off")
 plt.tight_layout(); plt.savefig(OUT / "calibration.png", dpi=110); plt.show()
+
+# How often do the raw top-5 patches sit on the positions that are noisiest on *normal* video?
+noisy = set(MU.flatten().topk(20).indices.tolist())           # 20 of 256 positions = 7.8% of the frame
+hits = [len(set(m.flatten().topk(5).indices.tolist()) & noisy) / 5
+        for n in test_videos for m in maps["V-JEPA 2 surprise, raw"][n]]
+cal_hits = [len(set(m.flatten().topk(5).indices.tolist()) & noisy) / 5
+            for n in test_videos for m in maps["V-JEPA 2 surprise, calibrated"][n]]
+noisy_share = {"raw": float(np.mean(hits)), "calibrated": float(np.mean(cal_hits)), "chance": 20 / 256}
+print(f"top-5 patches on the 20 noisiest normal positions: raw {noisy_share['raw']:.0%}, "
+      f"calibrated {noisy_share['calibrated']:.0%} (chance {noisy_share['chance']:.0%})")
+(OUT / "results.json").write_text(json.dumps({"metrics": results, "noisy_position_share": noisy_share,
+                                              "heatmap_frames_video_04": picks}, indent=1))
 
 # %% [markdown]
 # ## Part 2: adapt the predictor to this camera

@@ -1,43 +1,28 @@
 {
-  "model": "facebook/vjepa2-vitl-fpc64-256",
-  "dataset": "UCSD Ped2",
-  "hardware": "Colab Tesla T4 (16 GB)",
-  "runtime_seconds": {
-    "memory_bank": 78,
-    "test_scoring": 246
+ "metrics": {
+  "V-JEPA 2 surprise, raw": {
+   "AUC raw": 0.47363789357935954,
+   "AUC per-video normalised": 0.4808490452180443,
+   "AUC raw, whole-frame mean": 0.7668679262994154
   },
-  "n_train_videos": 16,
-  "n_test_videos": 12,
-  "n_test_frames": 2010,
-  "n_anomalous_frames": 1648,
-  "n_memory_bank_tubelets": 588,
-  "window": {
-    "t_ctx": 12,
-    "t_pred": 4,
-    "stride": 2,
-    "grid": 16,
-    "topk": 5
+  "V-JEPA 2 surprise, calibrated": {
+   "AUC raw": 0.683396583167945,
+   "AUC per-video normalised": 0.6684177707450517,
+   "AUC raw, whole-frame mean": 0.764583221584509
   },
-  "metrics": {
-    "V-JEPA 2 surprise, raw": {
-      "AUC raw": 0.47363789357935954,
-      "AUC per-video normalised": 0.4808490452180443,
-      "AUC raw, whole-frame mean": 0.7668679262994154
-    },
-    "V-JEPA 2 surprise, calibrated": {
-      "AUC raw": 0.683396583167945,
-      "AUC per-video normalised": 0.6684177707450517,
-      "AUC raw, whole-frame mean": 0.764583221584509
-    },
-    "seen-before baseline": {
-      "AUC raw": 0.8319493241431101,
-      "AUC per-video normalised": 0.7886237461781902,
-      "AUC raw, whole-frame mean": 0.9248561792629941
-    }
-  },
-  "video_04": {
-    "normal_pick_frame": 14,
-    "anomalous_pick_frame": 178,
-    "n_frames": 180
+  "seen-before baseline": {
+   "AUC raw": 0.8319493241431101,
+   "AUC per-video normalised": 0.7886237461781902,
+   "AUC raw, whole-frame mean": 0.9248561792629941
   }
+ },
+ "noisy_position_share": {
+  "raw": 0.3267661691542289,
+  "calibrated": 0.02985074626865672,
+  "chance": 0.078125
+ },
+ "heatmap_frames_video_04": [
+  18,
+  72
+ ]
 }

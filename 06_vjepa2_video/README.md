@@ -35,7 +35,7 @@ first **12 frames** (`6 × 16 × 16` latents) and ask it to predict the last
 
 | Part | What it is |
 |---|---|
-| Backbone | `facebook/vjepa2-vitl-fpc64-256` (ViT-L encoder + predictor, frozen, `fp16`) |
+| Backbone | `facebook/vjepa2-vitl-fpc64-256` (ViT-L encoder + predictor, frozen, `fp16`; Part 2 fine-tunes the predictor) |
 | Sliding window | 12 past frames → predict 4 future frames, stride 2 frames |
 | Frame score | Mean of the **top-5 most surprising patches** in the `16 × 16` spatial grid (anomalies cover only a few patches; whole-frame mean washes them out on calibrated maps) |
 | **V-JEPA 2 surprise, raw** | Raw L1 distance between predicted and layer-normed target latents |
@@ -43,7 +43,7 @@ first **12 frames** (`6 × 16 × 16` latents) and ask it to predict the last
 | **Seen-before baseline** | No predictor: cosine distance to the closest normal training latent at the **same spatial position** (588 training tubelets) |
 
 Hardware: Colab Tesla T4 (16 GB VRAM). Memory bank + calibration stats: **78 s**;
-scoring all 12 test videos: **246 s** (~5.5 min total).
+scoring all 12 test videos: **246 s** (~5.5 min for Part 1; Part 2 adds ~10 min).
 
 ## Results
 
@@ -55,33 +55,46 @@ scoring all 12 test videos: **246 s** (~5.5 min total).
 
 ![auc](assets/auc.png)
 
-### Why raw top-5 surprise fails (and calibration fixes it)
+### Why raw top-5 surprise fails (and calibration helps)
 
-At first, taking the top-5 raw surprise patches scored near chance (**0.474 AUC**),
-even though averaging the whole frame gave **0.767 AUC**. Why? In a static camera
-scene, flickering tree leaves and walkway borders are *always* harder to predict
-than flat pavement—so the top-5 patches in every frame were just the trees,
-drowning out the bicycle.
+Taking the top-5 raw surprise patches scored below chance (**0.474 AUC**),
+although averaging the whole frame gave **0.767**. Some positions are hard to
+predict even on normal video (the usual-surprise map μ is highest along the
+grass/hedge strip and some pavement edges), and the top-5 often land there:
+**33%** of the raw top-5 patches fall on the 20 positions (8% of the frame)
+that are noisiest on normal video, 4× more than chance.
 
-Normalising each `16 × 16` cell by its usual surprise `(s − μ) / σ` on normal
-training video silences the background clutter and jumps top-5 AUC from
-**0.474 → 0.683**:
+Normalising each `16 × 16` cell by its usual surprise, `(s − μ) / σ` on
+normal training video, removes that: only **3%** of the calibrated top-5
+patches land there, and top-5 AUC rises from **0.474 → 0.683**. The noisy
+positions explain part of the failure, not all of it: calibrated surprise is
+still far below seen-before.
 
 ![calibration](assets/calibration.png)
 
-### Where V-JEPA 2 is surprised
+Frame 72 of test video `04`, where a cart drives in. Left to right: the
+usual surprise μ, raw surprise, calibrated surprise and the seen-before
+distance. Seen-before marks the cart clearly; calibrated surprise is high
+next to and below it, but also at scattered pavement spots.
 
-On test video `04`, calibrated V-JEPA 2 surprise lights up directly on the
-speeding cyclist while staying dark on normal walking pedestrians:
+### Where V-JEPA 2 is surprised
 
 ![heatmap](assets/heatmap.png)
 
+Calibrated surprise on the least surprising normal frame and the most
+surprising anomalous frame of video `04` (both taken from the middle of the
+video, where every frame was really predicted). On the anomalous frame the
+strongest response is around the cart's lower edge and on the pavement in
+front of it; there are also weaker spots on people walking normally.
+
 ### Score over time
 
-Both calibrated predictor surprise and the seen-before memory bank rise sharply
-when the anomaly enters the frame and drop back down once it leaves:
-
 ![timeline](assets/timeline.png)
+
+Video `04`: the cart enters at frame 31 and stays until the end. Seen-before
+rises as it enters and stays high. Calibrated surprise also rises, then
+swings up and down for the rest of the video: it reacts to the cart's
+motion moment by moment, not to its presence.
 
 ## Part 2: adapt the predictor to this camera
 
@@ -112,16 +125,17 @@ objects*, not *impossible motion*. Raw numbers:
 
 ## What it shows
 
-- **Spatial calibration is essential for world-model surprise on real cameras.**
-  Unlike the synthetic black-background ball in Experiment 03, real video has
-  textured background patches with permanently high prediction error. Taking
-  top-*k* patches without per-position `(μ, σ)` calibration picks background
-  foliage instead of the anomaly (`0.474` → `0.683` AUC).
-- **A fast cyclist is predictable to a general video world model.** V-JEPA 2 was
-  pretrained on internet videos that include bicycles and cars! Once a bike is in
-  motion, V-JEPA 2's predictor actually predicts its next 4 frames reasonably
-  well—whereas in Ped2, a bike is an anomaly *by scene rule* (no bikes on the
-  footpath), not because it violates physics.
+- **Real video needs calibrated surprise.** Unlike the black background of the
+  ball in 03, some spots of a real scene are hard to predict even when nothing
+  happens. A third of the raw top-5 patches land on those spots; calibrating
+  each position against normal video fixes that part (`0.474` → `0.683` AUC).
+- **Ped2's anomalies are unusual objects, not impossible motion.** A bike or a
+  cart moving along the walkway is normal physics; it is an anomaly only by
+  the scene's rule (no vehicles on the footpath). Our explanation for why
+  surprise stays weak: a general video world model has no reason to find
+  that motion unexpected. [Experiment 07](../07_physical_anomalies/) tests it
+  from the other side: on the same camera, surprise catches physically
+  impossible motion almost perfectly.
 - **Therefore, "have I seen this patch here before?" beats pure dynamics surprise
   (`0.832` vs `0.683` top-5 AUC, `0.925` whole-frame AUC).** Just like in
   Experiments 04 and 05, frozen V-JEPA 2 representations + a simple normal
