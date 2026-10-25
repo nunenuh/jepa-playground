@@ -47,7 +47,7 @@ are held out: test runs (212 hijacked, 1,179 resisted, 975 benign) use tasks
 | Probe | linear, scores every call; run score = top call. AgentDojo only says *whether* a run was hijacked, so the loss is on the run score (multiple-instance learning) |
 | Negatives | benign **and** resisted, so the probe must learn "the agent did something bad", not "there is injected text" |
 
-Colab T4, about 15 minutes in total (plus the dataset download).
+Colab T4, about 17 minutes in total (plus the dataset download).
 
 ## Results
 
@@ -187,6 +187,28 @@ Right: the Q6 ensemble (1,000 labels), trained only on the
 It holds up on phrasings it never saw (AUC 0.90–0.99). Counts are small
 (6–22 hijacks), so these are encouraging, not proof.
 
+### Q8: a larger validation split
+
+Q6 blamed the drifting alarm line on a small validation set. So validation
+gets **35%** of the training tasks instead of 15% (768 benign runs instead of
+339); the test split is identical. JEPA is re-pretrained on the smaller train
+split; then the Q6 setup (single probe, 1,000 labels) runs with 3 seeds.
+
+![q8](assets/q8.png)
+
+| Validation | AUC | Hijacks caught | Benign flagged (3 seeds) | Resisted flagged (3 seeds) |
+|---|---|---|---|---|
+| 15% of train tasks | **0.926** | **71%** | 2.4%, 13.7%, 5.5% | 3.6%, 10.5%, 7.9% |
+| 35% of train tasks | 0.906 | 65% | 7.3%, 1.9%, 5.5% | 10.0%, 5.6%, 9.5% |
+
+(Line set on benign validation runs; target 5%.)
+
+**Half fixed.** The benign false-alarm spread halves (11 → 5 points), but it
+doesn't land on 5%, and resisted runs stay at 6–10%. The rest is not sample
+size: test runs come from *different tasks*, and how often normal runs look
+suspicious depends on the task. Less training data also costs ~2 AUC points.
+So the main results keep the 15% split.
+
 ### Q3: which agents are easiest to catch?
 
 ![per agent](assets/per_model.png)
@@ -236,7 +258,8 @@ pulls it back (spread ~1.1).
   stable (Q6: worse at every false-alarm rate). 1,000 labels is the sweet spot.
 - **Best operating point: ~80% of hijacks caught at 5% false alarms** (Q6,
   single probe, 1,000 labels). The alarm line still drifts between
-  validation and test; a larger validation set would fix that.
+  validation and test. A larger validation set halves the drift (Q8) but
+  can't remove it: false alarms depend on which *tasks* the agent gets.
 - **It transfers to other attack phrasings** (Q7: AUC 0.90–0.99), because it
   looks at *where the agent's arguments came from*, not at how the injection
   was worded.
@@ -248,7 +271,7 @@ pulls it back (spread ~1.1).
 
 | Change | What you'll see |
 |---|---|
-| A larger validation split (e.g. 25% of train tasks) | A steadier alarm line |
+| Set the alarm line per suite (banking, slack, travel, workspace) | Whether task-dependent false alarms even out |
 | Sources at the level of each value (not only the first found) | Calls that mix safe and injected values |
 | Other attacks (`ignore_previous`, `tool_knowledge`, ...) as extra test sets | Robustness to how the injection is phrased |
 | Hold out whole agents instead of tasks | Whether it works on an agent it never saw |

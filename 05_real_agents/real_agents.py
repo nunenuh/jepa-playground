@@ -104,7 +104,7 @@ print(len(runs), "runs with at least one tool call:", Counter(r["kind"] for r in
 # validation (used only to set the alarm threshold).
 
 # %%
-def split_runs(rows, seed=0):
+def split_runs(rows, seed=0, val_frac=0.15):
     g = torch.Generator().manual_seed(seed)
     pick = lambda items, frac: set(items[i] for i in torch.randperm(len(items), generator=g)[:max(1, round(frac * len(items)))].tolist())
     out = {"train": [], "val": [], "test": []}
@@ -112,7 +112,7 @@ def split_runs(rows, seed=0):
         tasks = sorted({r["user_task"] for r in rows if r["suite"] == suite})
         goals = sorted({r["injection_task"] for r in rows if r["suite"] == suite and r["injection_task"]})
         test_tasks, test_goals = pick(tasks, 0.3), pick(goals, 0.3)
-        val_tasks = pick([t for t in tasks if t not in test_tasks], 0.15)
+        val_tasks = pick([t for t in tasks if t not in test_tasks], val_frac)
         for r in (r for r in rows if r["suite"] == suite):
             t_test, g_test = r["user_task"] in test_tasks, r["injection_task"] in test_goals
             if r["injection_task"] and t_test != g_test:
@@ -836,3 +836,57 @@ axes[1].set_xticks(list(x), [f"{a}\n({q7[a]['hijacked']} hijacked)" for a in nam
 axes[1].set_ylim(0, 1.15); axes[1].legend(fontsize=7, loc="upper center", ncol=2)
 axes[1].set_title("Q7: trained on important_instructions, tested on other attacks", fontsize=10)
 plt.tight_layout(); plt.savefig(OUT / "q6_q7.png", dpi=110); plt.show()
+
+# %% [markdown]
+# ## Q8: a larger validation split
+#
+# The alarm line is the 95th percentile of validation scores, and with 15% of
+# the training tasks as validation only ~17 benign runs decide it, so it
+# drifts. Here validation gets **35%** of the training tasks instead. The test
+# split is unchanged (same tasks, same goals), so the comparison is fair. The
+# JEPA is re-pretrained on the smaller train split, then the Q6 setup
+# (single probe, 1,000 labels, `raw+jepa+src`) runs with 3 seeds under both
+# splits. Target: 5% false alarms.
+
+# %%
+def drift_runs(tag):
+    out = []
+    for seed in range(SEEDS):
+        idx = torch.randperm(len(splits["train"]), generator=torch.Generator().manual_seed(seed))[:1000].to(DEVICE)
+        calls = fit_run_probe(KIND, idx, seed=seed)
+        for rule, negs in [("benign", {"benign"}), ("benign+resisted", {"benign", "resisted"})]:
+            out.append({"split": tag, "seed": seed, "rule": rule, **operating_point(calls, negs)})
+    return out
+
+
+q8 = drift_runs("val 15%")
+test_before = sorted((r["suite"], r["model"], r["user_task"], str(r["injection_task"])) for r in splits["test"])
+splits = split_runs(runs, val_frac=0.35)
+assert sorted((r["suite"], r["model"], r["user_task"], str(r["injection_task"])) for r in splits["test"]) == test_before
+print({p: len(rs) for p, rs in splits.items()}, "benign val runs:", sum(r["kind"] == "benign" for r in splits["val"]))
+feats = {p: featurize(rs) for p, rs in splits.items()}
+SRC = {p: source_features(rs) for p, rs in splits.items()}
+LABEL = {p: torch.tensor([float(r["kind"] == "hijacked") for r in rs], device=DEVICE) for p, rs in splits.items()}
+enc, pred, _ = pretrain(*feats["train"])
+q8 += drift_runs("val 35%")
+for tag in ["val 15%", "val 35%"]:
+    for rule in ["benign", "benign+resisted"]:
+        rs = [r for r in q8 if r["split"] == tag and r["rule"] == rule]
+        mean = lambda k: sum(r[k] for r in rs) / len(rs)
+        print(f"{tag} line on {rule:15s} AUC {mean('AUC vs resisted'):.3f}  caught {mean('recall hijacked'):.3f}  "
+              f"benign flagged " + " ".join(f"{r['flag rate benign']:.3f}" for r in rs) +
+              "  resisted flagged " + " ".join(f"{r['flag rate resisted']:.3f}" for r in rs))
+
+# %%
+fig, axes = plt.subplots(1, 2, figsize=(11, 3.4), sharey=True)
+for ax, rule in zip(axes, ["benign", "benign+resisted"]):
+    for k, (tag, color) in enumerate([("val 15%", "#898781"), ("val 35%", "#1baf7a")]):
+        rs = [r for r in q8 if r["split"] == tag and r["rule"] == rule]
+        for m, key in enumerate(["flag rate benign", "flag rate resisted"]):
+            xs = [m * 3 + k + 0.15 * (i - 1) for i in range(len(rs))]
+            ax.scatter(xs, [r[key] for r in rs], color=color, s=30, label=tag if m == 0 else None)
+    ax.axhline(0.05, color="#e34948", ls="--", lw=1, label="target 5%")
+    ax.set_xticks([0.5, 3.5], ["benign test runs", "resisted test runs"])
+    ax.set_title(f"alarm line set on {rule}"); ax.set_ylabel("flagged (one dot per seed)"); ax.grid(alpha=.3)
+axes[0].legend(fontsize=7)
+plt.tight_layout(); plt.savefig(OUT / "q8.png", dpi=110); plt.show()
