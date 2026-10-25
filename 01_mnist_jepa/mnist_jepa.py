@@ -132,9 +132,12 @@ def linear_probe(encoder, epochs=5):
     return (probe(xte).argmax(1) == yte).float().mean().item()
 
 
-print(f"probe accuracy BEFORE training (random encoder): {linear_probe(target_enc):.1%}")
+random_enc = copy.deepcopy(target_enc)       # keep the untrained encoder for comparison
+probe_before = linear_probe(random_enc)
+print(f"probe accuracy BEFORE training (random encoder): {probe_before:.1%}")
 
 # %% Train
+history = []
 for epoch in range(EPOCHS):
     for x, _ in train_dl:                     # labels are ignored
         patches = patchify(x.to(DEVICE))
@@ -160,7 +163,84 @@ for epoch in range(EPOCHS):
 
     # collapse check: if every image gets the same embedding, std -> 0
     spread = target.reshape(-1, DIM).std(0).mean().item()
+    history.append((loss.item(), spread))
     print(f"epoch {epoch + 1:2d}  loss {loss.item():.4f}  embedding spread {spread:.3f}")
 
 # %% Result
-print(f"probe accuracy AFTER training (JEPA encoder):   {linear_probe(target_enc):.1%}")
+probe_after = linear_probe(target_enc)
+print(f"probe accuracy AFTER training (JEPA encoder):   {probe_after:.1%}")
+
+# %% [markdown]
+# ## Visualize what it learned
+# Three figures, saved to `assets/` next to this file:
+# 1. **The task** — hidden patches, and how close each predicted embedding is to the real one.
+# 2. **Training curves** — loss goes *up* (targets get richer); spread is the collapse check.
+# 3. **t-SNE** — embeddings before vs after training. After, digits form groups.
+
+# %%
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.manifold import TSNE
+
+OUT = (Path(__file__).parent if "__file__" in globals() else Path(".")) / "assets"
+OUT.mkdir(exist_ok=True)
+HIDDEN = "#eb6834"
+context_enc.eval(); predictor.eval(); target_enc.eval()
+
+# %% 1. The task: one test image per digit, 6 patches hidden
+fig, axes = plt.subplots(2, 10, figsize=(12, 3))
+gen = torch.Generator().manual_seed(3)
+for d in range(10):
+    x, _ = next((test_ds[i] for i in range(len(test_ds)) if test_ds.targets[i] == d))
+    patches = patchify(x[None].to(DEVICE))
+    perm = torch.rand(1, N_PATCHES, generator=gen).argsort(1).to(DEVICE)
+    tgt_idx, ctx_idx = perm[:, :N_TARGET], perm[:, N_TARGET:]
+    with torch.no_grad():
+        target = gather(target_enc(patches), tgt_idx)
+        pred = predictor(context_enc(patches, ctx_idx), ctx_idx, tgt_idx)
+        sim = F.cosine_similarity(pred, target, dim=-1).mean().item()
+
+    shown = x[0].clone()
+    for p in tgt_idx[0].tolist():
+        r, c = divmod(p, 4)
+        shown[r * PATCH:(r + 1) * PATCH, c * PATCH:(c + 1) * PATCH] = 0.25
+    for row, img in enumerate([shown, x[0]]):
+        ax = axes[row, d]
+        ax.imshow(img, cmap="gray_r", vmin=0, vmax=1)
+        for p in tgt_idx[0].tolist():
+            r, c = divmod(p, 4)
+            ax.add_patch(plt.Rectangle((c * PATCH - .5, r * PATCH - .5), PATCH, PATCH, fill=False, ec=HIDDEN, lw=1.2))
+        ax.set_xticks([]); ax.set_yticks([])
+    axes[1, d].set_xlabel(f"{sim:.0%}", fontsize=9)
+axes[0, 0].set_ylabel("shown"); axes[1, 0].set_ylabel("full")
+fig.suptitle("Hidden patches (orange). % = similarity of predicted vs real embedding")
+plt.tight_layout(); plt.savefig(OUT / "task.png", dpi=110); plt.show()
+
+# %% 2. Training curves (two charts, never one chart with two y-axes)
+loss_hist, spread_hist = zip(*history)
+fig, (a1, a2) = plt.subplots(1, 2, figsize=(10, 3))
+epochs = range(1, len(history) + 1)
+a1.plot(epochs, loss_hist, marker="o"); a1.set_title("Loss per epoch (going up is normal)")
+a2.plot(epochs, spread_hist, marker="o"); a2.set_title("Embedding spread (near 0 = collapse)")
+for a in (a1, a2):
+    a.set_xlabel("epoch"); a.set_ylim(bottom=0); a.grid(alpha=.3)
+plt.tight_layout(); plt.savefig(OUT / "curves.png", dpi=110); plt.show()
+
+# %% 3. t-SNE of embeddings: random encoder vs JEPA encoder
+x, y = next(iter(torch.utils.data.DataLoader(test_ds, batch_size=1500)))
+fig, axes = plt.subplots(1, 2, figsize=(12, 5.5))
+for ax, enc, title in [(axes[0], random_enc, f"Before training: probe {probe_before:.1%}"),
+                       (axes[1], target_enc, f"After JEPA training: probe {probe_after:.1%}")]:
+    with torch.no_grad():
+        emb = enc(patchify(x.to(DEVICE))).mean(1).cpu().numpy()
+    xy = TSNE(2, random_state=0, init="pca").fit_transform(emb)
+    for (px, py), label in zip(xy[:900], y[:900].tolist()):      # each point drawn as its digit
+        ax.text(px, py, str(label), fontsize=7, ha="center", va="center", color="0.35")
+    for d in range(10):                                           # big label at each digit's centre
+        cx, cy = np.median(xy[y.numpy() == d], 0)
+        ax.text(cx, cy, str(d), fontsize=16, weight="bold", color="#2a78d6", ha="center", va="center")
+    ax.set_xlim(xy[:, 0].min() - 3, xy[:, 0].max() + 3); ax.set_ylim(xy[:, 1].min() - 3, xy[:, 1].max() + 3)
+    ax.set_title(title); ax.set_xticks([]); ax.set_yticks([])
+plt.tight_layout(); plt.savefig(OUT / "tsne.png", dpi=110); plt.show()

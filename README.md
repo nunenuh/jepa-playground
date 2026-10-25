@@ -20,13 +20,14 @@ learn meaning (shape, structure, what happens next) and ignore noise.
 
 | # | Probe accuracy before | Probe accuracy after | Setup |
 |---|---|---|---|
-| 01 | 56.1% (random encoder) | 82.7% | 10 epochs, no labels, RTX A2000 (~2 min) |
+| 01 | 56.1% (random encoder) | 82.7% | 10 epochs, no labels, RTX A2000 (~2 min). [Details and figures](01_mnist_jepa/README.md) |
 
 ## Run
 
 ```bash
 # local
-uv run --with torch --with torchvision python 01_mnist_jepa/mnist_jepa.py
+uv run --with torch --with torchvision --with matplotlib --with scikit-learn \
+    python 01_mnist_jepa/mnist_jepa.py
 
 # or click the Colab badge above (or use the Google Colab extension in VS Code)
 ```
