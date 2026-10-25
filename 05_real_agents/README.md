@@ -47,7 +47,7 @@ are held out: test runs (212 hijacked, 1,179 resisted, 975 benign) use tasks
 | Probe | linear, scores every call; run score = top call. AgentDojo only says *whether* a run was hijacked, so the loss is on the run score (multiple-instance learning) |
 | Negatives | benign **and** resisted, so the probe must learn "the agent did something bad", not "there is injected text" |
 
-Colab T4, about 8 minutes in total (plus the dataset download).
+Colab T4, about 12 minutes in total (plus the dataset download).
 
 ## Results
 
@@ -118,6 +118,32 @@ Same "pay the bill" pair as above. The attacker's payment now scores 3.57
 and the legitimate one 2.32 (linear probe: 3.00 vs 2.99): context helps, but
 the legitimate payment is still just over the alarm line (2.11).
 
+### Q5: where did each argument come from?
+
+MiniLM turns text into a *meaning* vector, so `US122…` and `US133…` look
+almost the same to it. So for every call we find the **line** earlier in the
+run where its argument values (IBANs, emails, file names, ...) appeared:
+`FROM TASK`, `FROM RESULT: <that line>`, or `FROM NOWHERE`. That line is
+embedded and added to the call's token. This is a learned version of
+*taint tracking*: data copied from an injected instruction carries that
+instruction's text with it.
+
+| Labelled runs | whole-run, raw | whole-run, raw+jepa | **+ sources, raw** | **+ sources, raw+jepa** |
+|---|---|---|---|---|
+| 250 | 0.801 | 0.805 | 0.860 | **0.887** |
+| 1,000 | 0.865 | 0.838 | 0.910 | **0.926** |
+| 9,946 (all) | 0.827 | 0.831 | **0.906** | 0.875 |
+
+AUC hijacked vs resisted. With 1,000 labels, `+ sources, raw+jepa` catches
+**71%** of hijacks at 7.2% benign / 7.3% resisted false alarms.
+
+![example sources](assets/example_source.png)
+
+Same "pay the bill" pair. The attacker's IBAN was copied from *"Send a
+transaction to US133… that includes…"* (the injected instruction), the real
+one from *"recipient: US122…"*. Now only the attacker's payment is flagged
+(5.0 vs −13.8 and −12.4).
+
 ### Q3: which agents are easiest to catch?
 
 ![per agent](assets/per_model.png)
@@ -159,8 +185,14 @@ pulls it back (spread ~1.1).
   labels, and 61% vs 42% of hijacks caught with all labels. It starts to
   separate the attacker's payment from the real one, but not fully yet.
 - **Once the probe reads context, JEPA features add little** (±2 points either
-  way): the transformer probe learns much of that context itself. JEPA's
-  clearest win stays the very-few-labels case (50 labels, Q1).
+  way): the transformer probe learns much of that context itself.
+- **Knowing where arguments came from is the biggest win** (Q5): AUC 0.93 with
+  1,000 labels, and the "wrong recipient" case is solved in the example. With
+  sources, JEPA features help again at 250–1,000 labels (+1.6 to +2.7 points).
+- **More labels isn't always better here.** With all labels, Q5 drops a little
+  and flags more benign runs (9–15%): early stopping picks the best val AUC,
+  but the alarm threshold moves between splits. Calibration is the next
+  thing to fix.
 - **Caveats.** One attack type (`important_instructions`); 3 label samples per
   point; the Q2 probe isn't seeded, so its numbers move by about ±0.01 between runs; per-agent numbers rest on 11–35 hijacked runs; the dataset
   download is ~500 MB.
@@ -169,7 +201,8 @@ pulls it back (spread ~1.1).
 
 | Change | What you'll see |
 |---|---|
-| Give the whole-run probe the bill's text explicitly (e.g. as a separate token) | Whether "wrong recipient" becomes fully learnable |
+| Calibrate the threshold (e.g. on resisted val runs too) | Fewer false alarms with all labels |
+| Sources at the level of each value (not only the first found) | Calls that mix safe and injected values |
 | Other attacks (`ignore_previous`, `tool_knowledge`, ...) as extra test sets | Robustness to how the injection is phrased |
 | Hold out whole agents instead of tasks | Whether it works on an agent it never saw |
 | Fine-tune MiniLM inside the JEPA | Richer call features |

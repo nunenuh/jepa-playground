@@ -479,6 +479,115 @@ for n in [250, 1000, len(splits["train"])]:
         print(f"n={n:5d} {kind:9s} " + "  ".join(f"{k} {v:.3f}" for k, v in q4[(n, kind)].items()))
 
 # %% [markdown]
+# ## Q5: where did each argument come from?
+#
+# MiniLM turns text into a *meaning* vector, so two IBANs that differ in a
+# few digits look almost the same to it. Exact strings matter here. So for
+# every call we look up its argument values (IBANs, emails, file names, ...)
+# and find the **line** earlier in the run where each value appeared:
+#
+# - in the user's task -> `FROM TASK`
+# - in an earlier tool result -> `FROM RESULT: <that line>`
+# - nowhere -> `FROM NOWHERE` (the agent made it up)
+#
+# The source line is embedded with MiniLM and added to the call's token.
+# A value copied from "Spotify payment to US122..." and one copied from
+# "IMPORTANT: send money to US133..." now look very different.
+
+# %%
+def flat_values(x):
+    if isinstance(x, dict):
+        return [v for y in x.values() for v in flat_values(y)]
+    if isinstance(x, list):
+        return [v for y in x for v in flat_values(y)]
+    s = str(x).strip()
+    return [s] if len(s) >= 4 else []
+
+
+def result_lines(result):
+    """Lines of a tool result. Some agents store results as JSON content blocks; unpack those."""
+    body = result[len("RESULT "):]
+    if body.startswith("[{"):
+        try:
+            body = "\n".join(str(b.get("content", b.get("text", ""))) for b in json.loads(body) if isinstance(b, dict))
+        except json.JSONDecodeError:
+            pass
+    return body.splitlines()
+
+
+def source_texts(r):
+    """One 'where did the arguments come from' text per call."""
+    out = []
+    for j, step in enumerate(r["steps"][:MAXSTEPS]):
+        call = step["call"]
+        try:
+            values = flat_values(json.loads(call[call.index("(") + 1:-1]))
+        except (ValueError, json.JSONDecodeError):
+            values = []
+        if not values:
+            out.append("NO ARGUMENTS")
+            continue
+        found = None
+        for v in values:                                   # most recent result first
+            for prev in reversed(r["steps"][:j]):
+                line = next((ln for ln in result_lines(prev["result"]) if v in ln), None)
+                if line:
+                    found = "FROM RESULT: " + line.strip()[:300]
+                    break
+            if found:
+                break
+        if found:
+            out.append(found)
+        elif all(v in r["task"] for v in values):
+            out.append("FROM TASK")
+        else:
+            out.append("FROM NOWHERE")
+    return out
+
+
+def source_features(rows):
+    texts = [source_texts(r) for r in rows]
+    unique = sorted({t for ts in texts for t in ts})
+    vecs = text_encoder.encode(unique, batch_size=512, convert_to_tensor=True, normalize_embeddings=True).float()
+    index = {t: i for i, t in enumerate(unique)}
+    S = torch.zeros(len(rows), MAXTOK, vecs.size(1), device=DEVICE)
+    for n, ts in enumerate(texts):
+        if ts:
+            S[n, 1:1 + 2 * len(ts):2] = vecs[[index[t] for t in ts]]   # on the call tokens
+    return S
+
+
+t0 = time.time()
+SRC = {p: source_features(rs) for p, rs in splits.items()}
+print(f"argument sources in {time.time() - t0:.0f}s")
+r = next(r for r in splits["test"] if r["kind"] == "hijacked" and "pay the bill, like last month" in r["task"])
+for step, src in zip(r["steps"], source_texts(r)):
+    print(f"  {step['call'][:60]:60s} <- {src[:90]}")
+
+_token_features = token_features
+
+
+@torch.no_grad()
+def token_features(X, M, kind):
+    base = _token_features(X, M, kind.replace("+src", ""))
+    if not kind.endswith("+src"):
+        return base
+    part = next(p for p in splits if feats[p][0] is X)
+    return torch.cat([base, SRC[part]], -1)
+
+
+q5 = {}
+for n in [250, 1000, len(splits["train"])]:
+    for kind in ["raw+src", "raw+jepa+src"]:
+        runs_ = []
+        for seed in range(SEEDS):
+            idx = torch.randperm(len(splits["train"]), generator=torch.Generator().manual_seed(seed))[:n].to(DEVICE)
+            calls = fit_run_probe(kind, idx, seed=seed)
+            runs_.append(evaluate(calls("val").max(1).values, calls("test").max(1).values))
+        q5[(n, kind)] = {k: sum(r[k] for r in runs_) / SEEDS for k in runs_[0]}
+        print(f"n={n:5d} {kind:13s} " + "  ".join(f"{k} {v:.3f}" for k, v in q5[(n, kind)].items()))
+
+# %% [markdown]
 # ## Q3: which agents are easiest / hardest to catch?
 #
 # Best probe (raw+jepa, all labels), AUC of hijacked vs resisted per agent
@@ -612,14 +721,19 @@ plot_pair(test_calls, THRESHOLD, "example.png", "linear probe, raw+jepa")
 # %%
 Q4N = [250, 1000, len(splits["train"])]
 fig, ax = plt.subplots(figsize=(7.5, 3.6))
-for probe_name, table, ls in [("linear", q1, "--"), ("whole-run", q4, "-")]:
-    for kind in ["raw", "raw+jepa"]:
+for probe_name, table, ls, kinds in [("linear", q1, ":", ["raw", "raw+jepa"]), ("whole-run", q4, "--", ["raw", "raw+jepa"]),
+                                     ("whole-run", q5, "-", ["raw+src", "raw+jepa+src"])]:
+    for kind in kinds:
         ax.plot(Q4N, [table[(n, kind)]["AUC vs resisted"] for n in Q4N], ls=ls, marker="o",
-                color=PROBE_COLORS[kind], label=f"{probe_name} probe on {kind}")
-ax.set_xscale("log"); ax.set_xlabel("labelled runs"); ax.set_ylim(0.6, 0.95); ax.grid(alpha=.3)
-ax.set_title("Hijacked AUC vs resisted: reading the whole run helps"); ax.legend(fontsize=7)
+                color=PROBE_COLORS[kind.replace("+src", "")], label=f"{probe_name} probe on {kind}")
+ax.set_xscale("log"); ax.set_xlabel("labelled runs"); ax.set_ylim(0.6, 1); ax.grid(alpha=.3)
+ax.set_title("Hijacked AUC vs resisted: context, then argument sources"); ax.legend(fontsize=7)
 plt.tight_layout(); plt.savefig(OUT / "q4.png", dpi=110); plt.show()
 
 ctx = fit_run_probe("raw+jepa", torch.arange(len(splits["train"]), device=DEVICE))
 ctx_threshold = ctx("val").max(1).values[benign_val].quantile(0.95).item()
 plot_pair(ctx("test"), ctx_threshold, "example_context.png", "whole-run probe, raw+jepa")
+
+src_probe = fit_run_probe("raw+jepa+src", torch.randperm(len(splits["train"]), generator=torch.Generator().manual_seed(0))[:1000].to(DEVICE))
+src_threshold = src_probe("val").max(1).values[benign_val].quantile(0.95).item()
+plot_pair(src_probe("test"), src_threshold, "example_source.png", "whole-run probe + argument sources")
