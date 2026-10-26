@@ -72,6 +72,32 @@ baseline; none beat the baseline (best AUC 0.68). It isn't only the unseen
 tasks either: on the split with shared tasks, JEPA reached 0.71 and the
 baseline 0.86.
 
+### More label-free baselines (added later)
+
+The same Part A setup with the label-free scores from
+[05 Q9](../05_real_agents/README.md#q9-no-labels-at-all)
+([`baselines.py`](baselines.py)): Mahalanobis on the raw text vectors or on the
+JEPA latents, k-NN in JEPA latent space, and **JEPA-SCORE** (the density a
+SIGReg-trained JEPA learns implicitly: Σ log singular values of the encoder's
+Jacobian).
+
+| No labels | AUC vs benign | vs hard negatives | vs failed attacks | Full-hijack recall | Benign flagged |
+|---|---|---|---|---|---|
+| **Seen-before (raw)** | **0.696** | **0.724** | **0.715** | **45%** | 12.2% |
+| Mahalanobis (raw) | 0.631 | 0.658 | 0.660 | 14% | 5.9% |
+| k-NN (JEPA) | 0.622 | 0.650 | 0.621 | 10% | 6.7% |
+| JEPA surprise | 0.608 | 0.565 | 0.597 | 4% | 3.4% |
+| Mahalanobis (JEPA) | 0.512 | 0.543 | 0.555 | 19% | 19.2% |
+| JEPA-SCORE | 0.542 | 0.489 | 0.510 | 2% | 3.8% |
+
+Seen-before stays the best label-free score on synthetic agents, and
+JEPA-SCORE is at chance. Here the JEPA is trained only on normal
+trajectories that are mostly *template* text, so its latent space (and the
+density read from it) doesn't add anything a nearest-neighbour check on the
+raw text doesn't already know. On real agents ([05 Q9](../05_real_agents/README.md#q9-no-labels-at-all))
+k-NN in JEPA space did edge ahead. Raw numbers:
+[`assets/results_baselines.json`](assets/results_baselines.json).
+
 ## Part B: JEPA pretraining + a small labelled probe
 
 This is how JEPA is meant to be used (as in 01's linear probe):

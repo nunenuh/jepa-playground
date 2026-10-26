@@ -1,0 +1,65 @@
+{
+ "commit": "014a514fa998b4ac4519579fceb8a5884b379bda",
+ "results": {
+  "seen-before baseline": {
+   "AUC vs benign": 0.6964030861854553,
+   "AUC vs hard_negative": 0.7239595651626587,
+   "AUC vs failed_attack": 0.7153832912445068,
+   "recall full_hijack": 0.448888897895813,
+   "recall partial_hijack": 0.1538461595773697,
+   "recall delayed_execution": 0.21367523074150085,
+   "flag rate benign": 0.12190476059913635,
+   "localization": 0.7729032258064517
+  },
+  "JEPA surprise": {
+   "AUC vs benign": 0.6076436042785645,
+   "AUC vs hard_negative": 0.5648134350776672,
+   "AUC vs failed_attack": 0.5966084599494934,
+   "recall full_hijack": 0.04222222417593002,
+   "recall partial_hijack": 0.08653846383094788,
+   "recall delayed_execution": 0.08547008782625198,
+   "flag rate benign": 0.034285712987184525,
+   "localization": 0.5896774193548387
+  },
+  "Mahalanobis (raw)": {
+   "AUC vs benign": 0.6312946081161499,
+   "AUC vs hard_negative": 0.6576787233352661,
+   "AUC vs failed_attack": 0.6602485775947571,
+   "recall full_hijack": 0.13777777552604675,
+   "recall partial_hijack": 0.08173077553510666,
+   "recall delayed_execution": 0.14529915153980255,
+   "flag rate benign": 0.05904761701822281,
+   "localization": 0.7419354838709677
+  },
+  "k-NN (JEPA)": {
+   "AUC vs benign": 0.622471272945404,
+   "AUC vs hard_negative": 0.6498671770095825,
+   "AUC vs failed_attack": 0.6205682158470154,
+   "recall full_hijack": 0.09555555880069733,
+   "recall partial_hijack": 0.125,
+   "recall delayed_execution": 0.10256411135196686,
+   "flag rate benign": 0.06666666269302368,
+   "localization": 0.6696774193548387
+  },
+  "Mahalanobis (JEPA)": {
+   "AUC vs benign": 0.5124964714050293,
+   "AUC vs hard_negative": 0.5429918169975281,
+   "AUC vs failed_attack": 0.5553299784660339,
+   "recall full_hijack": 0.18666666746139526,
+   "recall partial_hijack": 0.22596155107021332,
+   "recall delayed_execution": 0.2649572789669037,
+   "flag rate benign": 0.19238094985485077,
+   "localization": 0.5767741935483871
+  },
+  "JEPA-SCORE": {
+   "AUC vs benign": 0.542402446269989,
+   "AUC vs hard_negative": 0.4888678193092346,
+   "AUC vs failed_attack": 0.5097543597221375,
+   "recall full_hijack": 0.017777778208255768,
+   "recall partial_hijack": 0.009615384973585606,
+   "recall delayed_execution": 0.025641027837991714,
+   "flag rate benign": 0.03809523582458496,
+   "localization": 0.6025806451612903
+  }
+ }
+}

@@ -52,6 +52,15 @@ scoring all 12 test videos: **246 s** (~5.5 min for Part 1; Part 2 adds ~10 min)
 | V-JEPA 2 surprise, raw | 0.474 | 0.481 | 0.767 |
 | **V-JEPA 2 surprise, calibrated** | **0.683** | **0.668** | 0.765 |
 | **Seen-before baseline (encoder only)** | **0.832** | **0.789** | **0.925** |
+| Mahalanobis on the encoder latents (added later, [`baselines.py`](baselines.py)) | 0.909 | – | 0.914 |
+
+*Mahalanobis* (added later): how far each latent is from the normal latents'
+Gaussian at its position (per-position mean, shared covariance shrunk 10%
+towards the identity). Another encoder-only, label-free check: it beats
+seen-before on top-5 patches (0.909 vs 0.832) and is close on the whole
+frame (0.914 vs 0.925). Either way, "is this unusual?" on the encoder's
+latents beats the world model's surprise on Ped2.
+Raw numbers: [`assets/results_baselines.json`](assets/results_baselines.json).
 
 ![auc](assets/auc.png)
 

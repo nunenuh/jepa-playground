@@ -1,0 +1,14 @@
+{
+ "bank_tubelets": 588,
+ "shrinkage": 0.1,
+ "results": {
+  "seen-before baseline (k-NN)": {
+   "AUC top-5 patches": 0.8323298288902001,
+   "AUC whole-frame mean": 0.9239895671297538
+  },
+  "Mahalanobis": {
+   "AUC top-5 patches": 0.9093543823418978,
+   "AUC whole-frame mean": 0.9143478785603175
+  }
+ }
+}
