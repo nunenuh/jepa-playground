@@ -1,0 +1,113 @@
+{
+ "dataset_revision": "a077a2f94e25889016fc6e5983cf21e2ddc25fb2",
+ "frame_steps": [
+  5,
+  10
+ ],
+ "context_lengths": [
+  4,
+  8,
+  12
+ ],
+ "stride": 4,
+ "topk_fraction": 0.1,
+ "results": {
+  "vith": {
+   "best_setting": "6fps ctx4 mean max",
+   "best": 0.5375494071146245,
+   "best_by_difficulty": {
+    "Easy": 0.5961538461538461,
+    "Hard": 0.5476190476190477,
+    "Medium": 0.545,
+    "Unknown": 0.46511627906976744
+   },
+   "best_by_condition": {
+    "continuity": 0.55,
+    "immutability": 0.5083333333333333,
+    "permanence": 0.5666666666666667,
+    "solidity": 0.5273972602739726
+   },
+   "held_out": 0.5039525691699605,
+   "part1_setting": 0.49604743083003955,
+   "all_settings": {
+    "12fps ctx4 mean max": 0.49209486166007904,
+    "12fps ctx4 mean mean": 0.4881422924901186,
+    "12fps ctx4 topk max": 0.46047430830039526,
+    "12fps ctx4 topk mean": 0.47035573122529645,
+    "12fps ctx8 mean max": 0.5,
+    "12fps ctx8 mean mean": 0.4901185770750988,
+    "12fps ctx8 topk max": 0.48221343873517786,
+    "12fps ctx8 topk mean": 0.4762845849802372,
+    "12fps ctx12 mean max": 0.5079051383399209,
+    "12fps ctx12 mean mean": 0.47035573122529645,
+    "12fps ctx12 topk max": 0.49604743083003955,
+    "12fps ctx12 topk mean": 0.4505928853754941,
+    "6fps ctx4 mean max": 0.5375494071146245,
+    "6fps ctx4 mean mean": 0.4980237154150198,
+    "6fps ctx4 topk max": 0.48023715415019763,
+    "6fps ctx4 topk mean": 0.4841897233201581,
+    "6fps ctx8 mean max": 0.5039525691699605,
+    "6fps ctx8 mean mean": 0.5019762845849802,
+    "6fps ctx8 topk max": 0.48221343873517786,
+    "6fps ctx8 topk mean": 0.5177865612648221,
+    "6fps ctx12 mean max": 0.49604743083003955,
+    "6fps ctx12 mean mean": 0.49209486166007904,
+    "6fps ctx12 topk max": 0.4881422924901186,
+    "6fps ctx12 topk mean": 0.5039525691699605
+   },
+   "pairs": 506
+  },
+  "vitl": {
+   "best_setting": "12fps ctx8 topk mean",
+   "best": 0.5395256916996047,
+   "best_by_difficulty": {
+    "Easy": 0.4807692307692308,
+    "Hard": 0.5535714285714286,
+    "Medium": 0.55,
+    "Unknown": 0.5232558139534884
+   },
+   "best_by_condition": {
+    "continuity": 0.5166666666666667,
+    "immutability": 0.5333333333333333,
+    "permanence": 0.5583333333333333,
+    "solidity": 0.547945205479452
+   },
+   "held_out": 0.5335968379446641,
+   "part1_setting": 0.49407114624505927,
+   "all_settings": {
+    "12fps ctx4 mean max": 0.49209486166007904,
+    "12fps ctx4 mean mean": 0.46047430830039526,
+    "12fps ctx4 topk max": 0.4683794466403162,
+    "12fps ctx4 topk mean": 0.5197628458498024,
+    "12fps ctx8 mean max": 0.4743083003952569,
+    "12fps ctx8 mean mean": 0.4881422924901186,
+    "12fps ctx8 topk max": 0.4644268774703557,
+    "12fps ctx8 topk mean": 0.5395256916996047,
+    "12fps ctx12 mean max": 0.44466403162055335,
+    "12fps ctx12 mean mean": 0.4841897233201581,
+    "12fps ctx12 topk max": 0.4782608695652174,
+    "12fps ctx12 topk mean": 0.5158102766798419,
+    "6fps ctx4 mean max": 0.4762845849802372,
+    "6fps ctx4 mean mean": 0.4980237154150198,
+    "6fps ctx4 topk max": 0.49209486166007904,
+    "6fps ctx4 topk mean": 0.4841897233201581,
+    "6fps ctx8 mean max": 0.48221343873517786,
+    "6fps ctx8 mean mean": 0.5118577075098815,
+    "6fps ctx8 topk max": 0.5395256916996047,
+    "6fps ctx8 topk mean": 0.4901185770750988,
+    "6fps ctx12 mean max": 0.49407114624505927,
+    "6fps ctx12 mean mean": 0.5217391304347826,
+    "6fps ctx12 topk max": 0.5197628458498024,
+    "6fps ctx12 topk mean": 0.48221343873517786
+   },
+   "pairs": 506
+  }
+ },
+ "paper_vjepa2_huge": {
+  "best": 0.5751,
+  "held_out_set": 0.564,
+  "Easy": 0.54,
+  "Medium": 0.585,
+  "Hard": 0.5938
+ }
+}

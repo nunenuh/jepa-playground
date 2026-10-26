@@ -9,7 +9,10 @@ benchmark? **[IntPhys 2](https://huggingface.co/datasets/facebook/IntPhys2)**
 (Meta, 2025) shows matched pairs of rendered videos, identical except that in
 one of them physics breaks.
 
-**Short answer: no.** Zero-shot and adapted, V-JEPA 2 (ViT-L) is at chance.
+**Short answer: no.** With one fixed setting V-JEPA 2 (ViT-L) is at chance
+(Part 1). Following the IntPhys 2 authors' own evaluation protocol, ViT-huge
+reaches **54.5%** (held-out 54.2%), within noise of the paper's 57.5%, and
+still far from humans (~96%) (Parts 2–3).
 
 ## Architecture
 
@@ -90,7 +93,7 @@ Fine-tuning on possible videos cuts held-out prediction error by 16%
 
 ## What it shows
 
-- **On IntPhys 2, V-JEPA 2's surprise is at chance**, zero-shot or adapted.
+- **With Part 1's setting, V-JEPA 2's surprise is at chance**, zero-shot or adapted.
   That matches the benchmark paper's conclusion ("most models near chance"),
   now reproduced independently with a smaller model.
 - **Why 07 worked and this doesn't.** In 07 the break hit the whole scene
@@ -103,23 +106,99 @@ Fine-tuning on possible videos cuts held-out prediction error by 16%
   predictor predicts the videos better and detects the violations no
   better. Lower prediction error means the model got better at *average*
   video, not at the rare object event that matters.
-- **Caveats.** One model size (ViT-L), one window setting (12 → 4 frames at
-  6 fps, peak over time), no hyperparameter search. The paper's best runs use
-  ViT-huge, longer contexts and several settings.
+- **Caveats.** Part 1 used one model size (ViT-L) and one window setting.
+  Parts 2–3 below repeat it with ViT-huge, a settings sweep and the official
+  protocol.
+
+
+## Part 2: a settings sweep, ViT-huge vs ViT-large
+
+The paper's 57.5% is V-JEPA 2 **ViT-huge**, best of about a dozen settings.
+Is our gap model size, or settings? We swept 24 settings with 16-frame windows,
+zero-shot (no adapting), for both models
+([`intphys2_sweep.py`](intphys2_sweep.py)):
+
+| Setting | Values |
+|---|---|
+| frame rate | 12 fps, 6 fps |
+| context | 4, 8, 12 frames (predict the rest of the 16) |
+| patch score | mean of all patches, mean of the 10% worst-predicted |
+| over time | peak, average |
+
+![sweep](assets/sweep.png)
+
+| | Best of 24 (picked on the test pairs, like the paper) | Held-out (setting picked on the other half of the scenes) |
+|---|---|---|
+| ViT-huge | 53.8% | 50.4% |
+| ViT-large | 54.0% | 53.4% |
+
+- **Size doesn't explain the gap**: ViT-large ≈ ViT-huge.
+- The best cells are scattered (45–54%) and the ViT-huge pick doesn't carry
+  over to the other half: with 2 s of context, this looks like noise around
+  chance.
+
+Colab A100: ~1.7 h (ViT-H) + ~1 h (ViT-L).
+
+## Part 3: the official IntPhys 2 protocol
+
+The IntPhys 2 authors' own evaluation
+([`prediction_evals/evals/intphys2`](https://github.com/facebookresearch/IntPhys2/tree/main/prediction_evals),
+config `vjepa_2.yaml`) gives V-JEPA 2 much longer memory. We reimplemented it
+with the Hugging Face model ([`intphys2_official.py`](intphys2_official.py)):
+
+| | Part 2 | Official (Part 3) |
+|---|---|---|
+| window | 16 frames | **48 frames** (8 s at 6 fps); videos are ~64 frames |
+| context | 4–12 frames | **12–42 frames**, predict the rest of the window |
+| stride | 4 | 2 |
+| start of video | first full window only | **max-context mode**: the first window is also scored with every shorter context (2, 4, ...) so an early break isn't missed |
+
+![official](assets/official_vith.png)
+
+| ViT-huge, official protocol | |
+|---|---|
+| **Best** (30 context frames, average over time) | **54.5%** |
+| **Held-out** (setting picked on the other half of the scenes) | **54.2%** |
+| by condition (best setting) | continuity 65.0% · immutability 54.2% · solidity 51.4% · permanence 48.3% |
+| by difficulty | Easy 55.8% · Medium 54.5% · Hard 51.8% · no label (86 pairs) 59.3% |
+
+![vs paper](assets/vs_paper.png)
+
+- **Long memory is what matters.** With 24+ context frames the average-over-time
+  score sits at 54–55% for every context length, and the held-out number
+  (54.2%) equals the best: a stable signal, unlike Part 2.
+- **We match the paper within noise.** With 506 pairs the 95% interval is
+  about ±4.3 points, and 57.5% (best of ~12 settings, picked on the test
+  set) falls inside ours. Remaining differences: the Hugging Face checkpoint
+  has one encoder (the official code encodes the context with the online
+  encoder and the targets with the EMA encoder), bf16, and their exact
+  hyperparameter grid.
+- **Where it works:** continuity (an object teleporting) at 65%, the same
+  kind of break that 07 caught. Permanence (an object vanishing behind an
+  occluder) stays at chance.
+- **Still far from humans (~96%).** Scale and settings move V-JEPA 2 a few
+  points off chance; they don't give it intuitive physics.
+
+Raw numbers: [`assets/results_sweep.json`](assets/results_sweep.json),
+[`assets/results_official_vith.json`](assets/results_official_vith.json).
+Colab A100: ~2.8 h for 1,012 videos.
 
 ## Experiments to try
 
 | Change | What you'll see |
 |---|---|
 | Score only the top-k most surprising patches instead of the frame mean | Whether a one-object break stops being washed out |
-| Longer context (24–42 frames, as in the paper's config) | Whether more history helps the predictor know what to expect |
-| `facebook/vjepa2-vith-fpc64-256` (ViT-huge) | How much model size matters here |
+| ViT-giant (`facebook/vjepa2-vitg-fpc64-384`) with the official protocol | Whether the next size up moves past ~55% |
+| Score only around the break moment | Whether the signal is diluted by the rest of the video |
 | Only fixed-camera scenes | Whether camera motion is what hides the signal |
 
 ## Run
 
 Click the Colab badge above, pick a GPU runtime, then Run all (about 80
-minutes on a T4, plus a ~1.5 GB download). Or locally (needs a GPU with
+minutes on a T4, plus a ~1.5 GB download). Parts 2 and 3 are separate
+notebooks, [`intphys2_sweep.ipynb`](intphys2_sweep.ipynb) and
+[`intphys2_official.ipynb`](intphys2_official.ipynb) (A100 recommended;
+`SMOKE=2` runs on 2 scenes as a quick test). Or locally (needs a GPU with
 ~12 GB):
 
 ```bash
