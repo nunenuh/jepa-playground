@@ -1,0 +1,52 @@
+{
+ "dataset_revision": "a077a2f94e25889016fc6e5983cf21e2ddc25fb2",
+ "frames_per_clip": 48,
+ "context_lengths": [
+  12,
+  18,
+  24,
+  30,
+  36,
+  42
+ ],
+ "stride": 2,
+ "frame_step": 10,
+ "max_context_mode": true,
+ "results": {
+  "model": "vith",
+  "best_setting": "ctx30 mean",
+  "best": 0.5454545454545454,
+  "best_by_difficulty": {
+   "Easy": 0.5576923076923077,
+   "Hard": 0.5178571428571429,
+   "Medium": 0.545,
+   "Unknown": 0.5930232558139535
+  },
+  "best_by_condition": {
+   "continuity": 0.65,
+   "immutability": 0.5416666666666666,
+   "permanence": 0.48333333333333334,
+   "solidity": 0.5136986301369864
+  },
+  "held_out": 0.541501976284585,
+  "all_settings": {
+   "ctx12 max": 0.4743083003952569,
+   "ctx12 mean": 0.5138339920948617,
+   "ctx18 max": 0.49209486166007904,
+   "ctx18 mean": 0.5177865612648221,
+   "ctx24 max": 0.46047430830039526,
+   "ctx24 mean": 0.5434782608695652,
+   "ctx30 max": 0.5197628458498024,
+   "ctx30 mean": 0.5454545454545454,
+   "ctx36 max": 0.5138339920948617,
+   "ctx36 mean": 0.5395256916996047,
+   "ctx42 max": 0.5098814229249012,
+   "ctx42 mean": 0.541501976284585
+  },
+  "pairs": 506
+ },
+ "paper_vjepa2_huge": {
+  "best": 0.5751,
+  "held_out_set": 0.564
+ }
+}
