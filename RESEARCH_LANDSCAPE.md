@@ -144,3 +144,24 @@ Domain JEPAs on GitHub: medicine (EchoJEPA, Brain-JEPA, Neuro-JEPA), driving
 Trend: JEPA has moved from image pretraining (2023) to **world models for
 planning and robots** (2025–2026), and is spreading into medical signals and
 language; tooling (stable-worldmodel, eb_jepa, jepa.cpp) is maturing.
+
+## Scaling: what happens with big models and big GPUs
+
+| Work | Scale | Finding |
+|---|---|---|
+| [V-JEPA 2](https://arxiv.org/abs/2506.09985) (Meta, 2025) | ViT-L 300M → **ViT-g 1B**, 2M → 22M videos (1M+ hours) | Every ingredient helps but modestly: data ≈ +1 pt, model ≈ +1.5, longer training ≈ +0.8; the biggest jump came from higher resolution and longer clips (cumulative +4 pts) |
+| [V-JEPA 2.1](https://huggingface.co/papers/2603.14482) (Meta, Mar 2026) | ViT-L → **ViT-G 2B**, + 142M images | Scaling helps on all tasks; dense loss + deep supervision unlock fine spatial features (+20 pts robot grasping vs V-JEPA 2-AC) |
+| [RoboJEPA](https://huggingface.co/papers/2610.10515) (Meta, Oct 2026) | **8B predictor**, 12 robot embodiments | **First JEPA scaling law**: imagination error follows a power law in compute; planning improves predictably; largest JEPA predictor to date; zero-shot long-horizon planning on real robots |
+| [LeVJEPA](https://huggingface.co/papers/2608.27395) (Aug 2026) | ViT-S/B/L | Same quality as V-JEPA 2 at **5.6–20.8× less compute** (SIGReg, no EMA, token dropping) |
+| [SALT](https://huggingface.co/papers/2509.24317) (Apple, 2025) | video | Frozen teacher beats V-JEPA's accuracy-per-FLOP frontier |
+| DINOv3 / Web-SSL (Meta, 2025, joint-embedding cousins) | **7B** on 1.7–2B images | Image SSL keeps improving to 7B and matches CLIP without text; very long training degraded dense features (needed a fix) |
+
+Takeaways:
+
+- **Understanding and planning scale**; RoboJEPA shows it's now *predictable*
+  (power law), like LLMs.
+- **Scale alone doesn't give intuitive physics**: IntPhys 2 stays near
+  chance for larger models; our [08](08_intphys2/) Part 2 found ViT-L ≈ ViT-H.
+- **Efficiency is the other race**: LeVJEPA/SALT get the same results with
+  5–20× less compute.
+- JEPA sizes (1–8B) are still far below LLMs (100B–1T+).
