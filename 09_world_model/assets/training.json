@@ -1,0 +1,8 @@
+{
+ "recipe": "stable-worldmodel scripts/train/lewm.py @ 21446f1, Push-T expert data (quentinll/lewm-pusht, 18,685 episodes), defaults except num_workers=11, max_epochs=3, limit_train_batches=0.33",
+ "steps_per_epoch": 4597, "batch_size": 128, "gpu": "Colab A100 40GB", "hours": 3.5,
+ "throughput_it_per_s": [1.8, 1.5, 1.5],
+ "val_pred_loss": {"before": 0.0799, "epoch_1": 0.0640, "epoch_2": 0.0349, "epoch_3": 0.0218},
+ "val_sigreg_loss": {"before": 56.0, "epoch_1": 4.35, "epoch_2": 2.73, "epoch_3": 2.18},
+ "official_budget": "100 epochs x 13,933 steps"
+}

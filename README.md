@@ -35,7 +35,7 @@ What's next and why: [ROADMAP.md](ROADMAP.md).
 | 06 | anomaly AUC 0.474 (raw top-5 surprise, drowned by foliage) | **0.683** (spatially calibrated surprise) · **0.832** top-5 / **0.925** whole-frame (seen-before latent bank) · adapting the predictor: prediction −24% error, detection no better | UCSD Ped2, zero-shot + predictor fine-tune (`facebook/vjepa2-vitl-fpc64-256`), Colab T4 (~16 min). [Details and figures](06_vjepa2_video/README.md) |
 | 07 | zero-shot surprise AUC 0.19 (reverse) / 0.32 (freeze) | **0.96–1.00** on all 4 types with the adapted predictor | Ped2 clips edited to break physics, Colab T4 (~17 min). [Details and figures](07_physical_anomalies/README.md) |
 | 08 | pairwise accuracy 50.2% (ViT-L, one setting: chance) | **54.5%** ViT-H with the official protocol (held-out 54.2%), within noise of the paper's 57.5%; ViT-L ≈ ViT-H; adapting: no gain | IntPhys 2 main set, 506 pairs, Colab T4 + A100. [Details and figures](08_intphys2/README.md) |
-| 09 | random actions: 0% success | **74%** (official LeWM checkpoint + CEM planning, 50 Push-T episodes) | Inference only, RTX A2000 laptop in Docker (~3 min). [Details](09_world_model/README.md) |
+| 09 | random actions: 0–2% success | **74%** official LeWM checkpoint · **78%** our own LeWM trained 3.5 h on Colab (~1% of the official budget), planning in Push-T | Train on Colab A100, plan in Docker on an RTX A2000 laptop. [Details](09_world_model/README.md) |
 
 ## Run
 
