@@ -19,6 +19,7 @@ learn meaning (shape, structure, what happens next) and ignore noise.
 | 06 | [V-JEPA 2 on real video](06_vjepa2_video/) | Zero-shot CCTV anomaly detection with Meta's 300M V-JEPA 2 world model (UCSD Ped2) | ✅ | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nunenuh/jepa-playground/blob/main/06_vjepa2_video/vjepa2_anomaly.ipynb) |
 | 07 | [Physically impossible video](07_physical_anomalies/) | V-JEPA 2 surprise on real clips edited to break physics (teleport, reverse, freeze, vanish) | ✅ | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nunenuh/jepa-playground/blob/main/07_physical_anomalies/physical_anomalies.ipynb) |
 | 08 | [IntPhys 2](08_intphys2/) | V-JEPA 2 surprise on Meta's intuitive-physics benchmark (permanence, immutability, continuity, solidity) | ✅ | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nunenuh/jepa-playground/blob/main/08_intphys2/intphys2.ipynb) |
+| 09 | [World model that plans](09_world_model/) | LeWorldModel: a JEPA world model choosing actions by planning in latent space (Push-T simulator, Docker on a laptop GPU) | 🔄 | — |
 
 What's next and why: [ROADMAP.md](ROADMAP.md).
 
@@ -34,6 +35,7 @@ What's next and why: [ROADMAP.md](ROADMAP.md).
 | 06 | anomaly AUC 0.474 (raw top-5 surprise, drowned by foliage) | **0.683** (spatially calibrated surprise) · **0.832** top-5 / **0.925** whole-frame (seen-before latent bank) · adapting the predictor: prediction −24% error, detection no better | UCSD Ped2, zero-shot + predictor fine-tune (`facebook/vjepa2-vitl-fpc64-256`), Colab T4 (~16 min). [Details and figures](06_vjepa2_video/README.md) |
 | 07 | zero-shot surprise AUC 0.19 (reverse) / 0.32 (freeze) | **0.96–1.00** on all 4 types with the adapted predictor | Ped2 clips edited to break physics, Colab T4 (~17 min). [Details and figures](07_physical_anomalies/README.md) |
 | 08 | pairwise accuracy 50.2% (ViT-L, one setting: chance) | **54.5%** ViT-H with the official protocol (held-out 54.2%), within noise of the paper's 57.5%; ViT-L ≈ ViT-H; adapting: no gain | IntPhys 2 main set, 506 pairs, Colab T4 + A100. [Details and figures](08_intphys2/README.md) |
+| 09 | random actions: 0% success | **74%** (official LeWM checkpoint + CEM planning, 50 Push-T episodes) | Inference only, RTX A2000 laptop in Docker (~3 min). [Details](09_world_model/README.md) |
 
 ## Run
 

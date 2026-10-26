@@ -50,13 +50,15 @@ honestly.
 
 Effort: ~half a day. GPU: T4 is enough.
 
-### 3. ⏳ 09: a world model that plans (LeWorldModel on Push-T)
+### 3. 🔄 09: a world model that plans (LeWorldModel on Push-T)
 
 The biggest trend: JEPA world models that choose actions. The repo has no
 actions or planning yet. LeWM is the most-starred JEPA repo, small, and has
 data and checkpoints on Hugging Face.
 
-- [ ] Reproduce LeWM on Push-T ([code](https://github.com/lucas-maes/le-wm), data `quentinll/lewm-pusht`)
+- [x] Docker image to run JEPA world models in simulators on the laptop GPU ([`09_world_model/Dockerfile`](09_world_model/Dockerfile))
+- [x] Official LeWM checkpoint planning in Push-T: **74%** vs random 0% (50 episodes)
+- [ ] Train our own LeWM on Push-T on Colab ([code](https://github.com/lucas-maes/le-wm), data `quentinll/lewm-pusht`, 13 GB), plan with it on the laptop
 - [ ] Planning success vs a baseline (copy the demonstrations / random actions)
 - [ ] **Velocity check** ([Velocity Blind Spot](https://huggingface.co/papers/2610.04585)): linear probe for position vs velocity on the latents; ties back to 07's freeze/reverse failure
 - [ ] Optional: TI-JEPA fix (pose code + motion code), does planning improve?
