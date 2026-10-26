@@ -3,8 +3,9 @@
 🔄 In progress. Part 1: run a trained JEPA world model in a simulator on a
 laptop GPU. Part 2: train our own on a Colab A100, then plan with it on the
 laptop: **78% success after 3.5 h of training, on par with the official
-checkpoint (74%)**. Next: the velocity check and impossible rollouts (see
-[ROADMAP](../ROADMAP.md)).
+checkpoint (74%)**. Part 3: what the latent knows: **positions yes,
+velocity no (from one frame)**, yet the predictor catches frozen, reversed and
+teleported motion (AUC 0.93–1.00).
 
 Experiments 01–08 only *watched*: they predicted what comes next. A world
 model that **plans** also takes actions: given the current camera image and a
@@ -105,6 +106,63 @@ run is 100 epochs × 13,933 steps, ~100× more). Colab A100, ~3.5 h.
 
 Raw numbers: [`assets/results.json`](assets/results.json) (planning),
 [`assets/training.json`](assets/training.json) (training).
+
+## Part 3: what does the latent know? Velocity and impossible rollouts
+
+[`probe.py`](probe.py), laptop GPU, ~10 min. Two questions:
+
+**A. Velocity check** ([Velocity Blind Spot](https://huggingface.co/papers/2610.04585)).
+Probes from the latent to positions and velocities. Data: 10,000 random
+simulator states, each rendered twice 0.5 s apart (one action block), moved
+by velocities drawn from the expert episodes; 8,000 to fit, 2,000 to test.
+(Probes fit on the 21 validation episodes overfit: 15 episodes are too few.)
+
+**B. Impossible rollouts.** The predictor sees 3 real frames and the actions,
+and predicts the next latent; surprise = squared error to what came next.
+Real next frames vs impossible ones: **frozen** (nothing moved), **reversed**
+(the previous frame), **teleported** block (re-rendered in the simulator,
+moved and turned). 440 clips from the validation episodes.
+
+![probe](assets/probe.png)
+
+| R² (MLP probe; 1 = perfect, 0 = nothing) | Official | Ours ep3 | Ours ep1 | Untrained |
+|---|---|---|---|---|
+| Agent position, 1 frame | 0.98 | 0.98 | 0.72 | ~0 |
+| Block position, 1 frame | 0.99 | 0.97 | 0.95 | 0.77 |
+| Block angle, 1 frame | 0.97 | 0.81 | 0.66 | 0.04 |
+| **Agent velocity, 1 frame** | **~0** | **~0** | **~0** | ~0 |
+| **Block velocity, 1 frame** | **~0** | **~0** | **~0** | ~0 |
+| Agent velocity, 2 frames | 0.75 | 0.71 | 0.07 | ~0 |
+| Block velocity, 2 frames | 0.85 | 0.85 | 0.75 | ~0 |
+
+| Surprise AUC (impossible vs real) | Official | Ours ep3 | Ours ep1 | Untrained |
+|---|---|---|---|---|
+| Teleported block | 1.00 | 1.00 | 1.00 | 0.47 |
+| Reversed | 1.00 | 0.99 | 0.90 | 0.49 |
+| Frozen | 0.99 | 0.93 | 0.70 | 0.50 |
+| Frozen, slow agent only | 0.98 | 0.91 | 0.73 | 0.49 |
+
+![teleport](assets/example_teleport.png)
+
+- **One frame knows *where*, not *how fast*.** Positions and angle are read
+  almost perfectly, velocity not at all (R² ≈ 0): the Velocity Blind Spot,
+  confirmed. No surprise: one picture can't show motion.
+- **The predictor fixes it with history.** Two latents give velocity back
+  (R² 0.71–0.85), and LeWM's predictor sees 3 frames, so it catches frozen and
+  reversed motion (AUC 0.93–1.00), even when the agent moves slowly. That's
+  what V-JEPA 2 missed in [07](../07_physical_anomalies/). The TI-JEPA fix
+  (a separate motion code) isn't needed for Push-T.
+- **Big jumps are easy, small ones need training.** Even the 1-epoch model
+  catches a teleport; "frozen" is what separates 1 epoch (0.70) from 3 (0.93)
+  and the official model (0.99).
+- **Our weak spot: the block angle** (0.81 vs 0.97). A plausible reason the
+  official checkpoint will be more reliable on harder goals.
+- **Check the control.** An untrained encoder already reads block position
+  (0.77): the grey block is a big patch of pixels. The gain from training is
+  in agent position, angle and velocity.
+
+Raw numbers: [`assets/results_probe.json`](assets/results_probe.json). The
+re-rendered frames match the dataset's pixels (mean difference 0.3/255).
 
 ## Run it on your laptop (Docker)
 

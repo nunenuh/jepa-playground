@@ -60,9 +60,10 @@ data and checkpoints on Hugging Face.
 - [x] Official LeWM checkpoint planning in Push-T: **74%** vs random 0% (50 episodes)
 - [x] Train our own LeWM on Push-T on Colab (3.5 h A100, 13,791 steps), plan with it on the laptop: **78%** vs official 74%
 - [ ] Planning success vs a baseline (copy the demonstrations / random actions)
-- [ ] **Velocity check** ([Velocity Blind Spot](https://huggingface.co/papers/2610.04585)): linear probe for position vs velocity on the latents; ties back to 07's freeze/reverse failure
-- [ ] Optional: TI-JEPA fix (pose code + motion code), does planning improve?
-- [ ] Surprise on impossible Push-T rollouts (teleporting block): links 03/07 to planning
+- [x] **Velocity check** ([Velocity Blind Spot](https://huggingface.co/papers/2610.04585)): one latent has positions (R² 0.97–0.99) but no velocity (≈ 0); two latents recover it (0.71–0.85)
+- [ ] ~~Optional: TI-JEPA fix~~ skipped: the predictor's 3-frame history already catches frozen/reversed motion
+- [x] Surprise on impossible Push-T rollouts: teleported 1.00, reversed 0.99, frozen 0.93 AUC (ours); unlike V-JEPA 2 in 07
+- [ ] Live demo: Push-T in a window, the JEPA plans, you interfere with the mouse, surprise meter
 
 Effort: ~1 day. GPU: A100, a few hours.
 

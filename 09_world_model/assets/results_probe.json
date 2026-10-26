@@ -1,0 +1,284 @@
+{
+ "clips": 440,
+ "probe_states": 10000,
+ "probe_test": 2000,
+ "render_gap": 0.3178314001381803,
+ "teleport": {
+  "px": 40,
+  "deg": 30
+ },
+ "models": {
+  "quentinll/lewm-pusht": {
+   "probe_r2": {
+    "agent position": {
+     "one frame": {
+      "linear": 0.9295789514398176,
+      "mlp": 0.9817800630752163
+     },
+     "two frames": {
+      "linear": 0.9297503989370102,
+      "mlp": 0.9694193421325916
+     }
+    },
+    "block position": {
+     "one frame": {
+      "linear": 0.9846392787241081,
+      "mlp": 0.992927704321453
+     },
+     "two frames": {
+      "linear": 0.9848052873433728,
+      "mlp": 0.9936792977635384
+     }
+    },
+    "block angle": {
+     "one frame": {
+      "linear": 0.9220426861024065,
+      "mlp": 0.9748190522200595
+     },
+     "two frames": {
+      "linear": 0.9239580057033288,
+      "mlp": 0.9736577406321809
+     }
+    },
+    "agent velocity": {
+     "one frame": {
+      "linear": -0.0031872255474968414,
+      "mlp": -0.10026386051973735
+     },
+     "two frames": {
+      "linear": 0.6113888436919807,
+      "mlp": 0.7483152924889735
+     }
+    },
+    "block velocity": {
+     "one frame": {
+      "linear": -0.005766526091847246,
+      "mlp": -0.09859567880630493
+     },
+     "two frames": {
+      "linear": 0.7801293073679404,
+      "mlp": 0.8483965396881104
+     }
+    }
+   },
+   "surprise_auc": {
+    "frozen": 0.9858419421487603,
+    "frozen, slow agent": 0.9802892561983471,
+    "frozen, fast agent": 0.9903099173553719,
+    "reversed": 0.9994059917355372,
+    "teleported block": 0.9999483471074381
+   },
+   "mean_surprise": {
+    "real": 0.017012985423207283,
+    "frozen": 0.24200588464736938,
+    "reversed": 0.6555288434028625,
+    "real (re-rendered)": 0.019244536757469177,
+    "teleported": 1.4517489671707153
+   }
+  },
+  "ours_epoch3": {
+   "probe_r2": {
+    "agent position": {
+     "one frame": {
+      "linear": 0.9570606660159269,
+      "mlp": 0.9802295586292091
+     },
+     "two frames": {
+      "linear": 0.9576379429586608,
+      "mlp": 0.9765219743357956
+     }
+    },
+    "block position": {
+     "one frame": {
+      "linear": 0.9334280862476005,
+      "mlp": 0.9696396516676224
+     },
+     "two frames": {
+      "linear": 0.9350393424759398,
+      "mlp": 0.9684010798900737
+     }
+    },
+    "block angle": {
+     "one frame": {
+      "linear": 0.48864995333327904,
+      "mlp": 0.8071970429394895
+     },
+     "two frames": {
+      "linear": 0.5007114146269499,
+      "mlp": 0.7962944527486432
+     }
+    },
+    "agent velocity": {
+     "one frame": {
+      "linear": -0.006003004966720238,
+      "mlp": -0.10985124394126211
+     },
+     "two frames": {
+      "linear": 0.6570635271219207,
+      "mlp": 0.709703765115562
+     }
+    },
+    "block velocity": {
+     "one frame": {
+      "linear": -0.0035994262167510227,
+      "mlp": -0.08180618286132812
+     },
+     "two frames": {
+      "linear": 0.7663945485056897,
+      "mlp": 0.8512164354324341
+     }
+    }
+   },
+   "surprise_auc": {
+    "frozen": 0.9303770661157025,
+    "frozen, slow agent": 0.9072727272727273,
+    "frozen, fast agent": 0.950103305785124,
+    "reversed": 0.9919318181818182,
+    "teleported block": 0.9998760330578512
+   },
+   "mean_surprise": {
+    "real": 0.03589153289794922,
+    "frozen": 0.2190275341272354,
+    "reversed": 0.609494149684906,
+    "real (re-rendered)": 0.04234882816672325,
+    "teleported": 1.3149683475494385
+   }
+  },
+  "ours_epoch1": {
+   "probe_r2": {
+    "agent position": {
+     "one frame": {
+      "linear": 0.678876500883684,
+      "mlp": 0.7190811691318577
+     },
+     "two frames": {
+      "linear": 0.6971611962008089,
+      "mlp": 0.7138343468010832
+     }
+    },
+    "block position": {
+     "one frame": {
+      "linear": 0.8949680915904434,
+      "mlp": 0.9538164503969336
+     },
+     "two frames": {
+      "linear": 0.8970242048192121,
+      "mlp": 0.9499160875481539
+     }
+    },
+    "block angle": {
+     "one frame": {
+      "linear": 0.32881301778550903,
+      "mlp": 0.6618444927090747
+     },
+     "two frames": {
+      "linear": 0.3457285775531291,
+      "mlp": 0.6651475140160663
+     }
+    },
+    "agent velocity": {
+     "one frame": {
+      "linear": -0.0038824690891813285,
+      "mlp": -0.09550597064745026
+     },
+     "two frames": {
+      "linear": 0.09369110376399076,
+      "mlp": 0.07215694435260195
+     }
+    },
+    "block velocity": {
+     "one frame": {
+      "linear": 0.00029079211329968713,
+      "mlp": -0.08973067998886108
+     },
+     "two frames": {
+      "linear": 0.42130222146282614,
+      "mlp": 0.7498701810836792
+     }
+    }
+   },
+   "surprise_auc": {
+    "frozen": 0.6996745867768596,
+    "frozen, slow agent": 0.7268595041322314,
+    "frozen, fast agent": 0.6810537190082644,
+    "reversed": 0.9034194214876033,
+    "teleported block": 0.9987861570247933
+   },
+   "mean_surprise": {
+    "real": 0.07667355984449387,
+    "frozen": 0.16527745127677917,
+    "reversed": 0.43719062209129333,
+    "real (re-rendered)": 0.08834138512611389,
+    "teleported": 1.2293109893798828
+   }
+  },
+  "random_init": {
+   "probe_r2": {
+    "agent position": {
+     "one frame": {
+      "linear": 0.019704531527305447,
+      "mlp": -0.1199799785152319
+     },
+     "two frames": {
+      "linear": 0.009997962422690132,
+      "mlp": -0.1539363463961676
+     }
+    },
+    "block position": {
+     "one frame": {
+      "linear": 0.7778384056736292,
+      "mlp": 0.7660277036260927
+     },
+     "two frames": {
+      "linear": 0.793710634657852,
+      "mlp": 0.7348959669643126
+     }
+    },
+    "block angle": {
+     "one frame": {
+      "linear": 0.08799430691003612,
+      "mlp": 0.040426179683173524
+     },
+     "two frames": {
+      "linear": 0.08001496105399336,
+      "mlp": -0.05181541550630031
+     }
+    },
+    "agent velocity": {
+     "one frame": {
+      "linear": -0.002033563178571729,
+      "mlp": -0.10952151573824731
+     },
+     "two frames": {
+      "linear": -0.0023715833204554504,
+      "mlp": -0.17965437608765555
+     }
+    },
+    "block velocity": {
+     "one frame": {
+      "linear": -0.0027543667006835193,
+      "mlp": -0.10948455333709717
+     },
+     "two frames": {
+      "linear": 0.020116565126454766,
+      "mlp": -0.12098491191864014
+     }
+    }
+   },
+   "surprise_auc": {
+    "frozen": 0.4950697314049587,
+    "frozen, slow agent": 0.4875723140495868,
+    "frozen, fast agent": 0.49990702479338844,
+    "reversed": 0.4896513429752067,
+    "teleported block": 0.47231921487603296
+   },
+   "mean_surprise": {
+    "real": 0.08392094820737839,
+    "frozen": 0.08391662687063217,
+    "reversed": 0.08391360938549042,
+    "real (re-rendered)": 0.08392984420061111,
+    "teleported": 0.08391167223453522
+   }
+  }
+ }
+}
