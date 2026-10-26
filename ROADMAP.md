@@ -35,7 +35,7 @@ got 50.2% with ViT-L and one setting.
 - [x] ViT-huge vs ViT-large: size doesn't explain the gap (ViT-L ≈ ViT-H)
 - [x] README Parts 2–3, root README results row, merge to `main`
 
-### 2. ⏳ Quick wins: JEPA-SCORE and simple baselines
+### 2. 🔄 Quick wins: JEPA-SCORE and simple baselines
 
 Blocker 7 (no "how normal is this" score) and honest baselines. An
 independent test found JEPA-SCORE losing to Mahalanobis on images
@@ -43,9 +43,9 @@ independent test found JEPA-SCORE losing to Mahalanobis on images
 honestly.
 
 - [ ] JEPA-SCORE ([paper](https://huggingface.co/papers/2510.05949)): density from the encoder's Jacobian, no retraining
-  - [ ] in 05: does it separate hijacked from resisted runs **without labels**?
+  - [x] in 05 (Q9): works but loses to k-NN (AUC 0.64–0.66 vs 0.76); no label-free score catches > 18% of hijacks at 5% false alarms
   - [ ] in 06: vs surprise and seen-before on Ped2
-- [ ] Mahalanobis and k-NN baselines in 04, 05, 06
+- [ ] Mahalanobis and k-NN baselines in 04, 06 (05 done in Q9)
 - [ ] Add rows to each README's results table (keep failures)
 
 Effort: ~half a day. GPU: T4 is enough.
@@ -73,7 +73,7 @@ Effort: ~1 day. GPU: A100, a few hours.
 benchmark. Nobody else has published JEPA for agent security, so this is the
 repo's unique contribution.
 
-- [ ] **No labels**: JEPA-SCORE and surprise from 05's JEPA; how close to the labelled probe?
+- [x] **No labels** (05 Q9): best label-free ranking 0.76 ≈ a 50-label probe, but alarms catch ≤ 18%
 - [ ] **PRA-style paired views** ([JEPA-Align](https://huggingface.co/datasets/memo-ozdincer/jepa-qwen3-32b-pure-baselines-2026-05-25)): train so that an attacked run and a clean run of the same user task map close together; a run that drifts away is suspicious
 - [ ] **New benchmark, no retraining**: train on AgentDojo, test on another agent-security benchmark (Agent Security Bench or InjecAgent); does it transfer?
 - [ ] Newer threats: malicious MCP servers / tool descriptions, if a dataset exists

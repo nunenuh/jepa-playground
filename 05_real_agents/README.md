@@ -209,6 +209,56 @@ size: test runs come from *different tasks*, and how often normal runs look
 suspicious depends on the task. Less training data also costs ~2 AUC points.
 So the main results keep the 15% split.
 
+### Q9: no labels at all
+
+A security team often has only logs. How far do **label-free** scores get on
+the same fair split? Each score rates every tool call by how unusual it is,
+fit on benign training runs (or on all unlabelled training runs), and a run's
+score is its most unusual call ([`no_labels.py`](no_labels.py)). JEPA scores
+use 3 seeds, with the JEPA pretrained either on all unlabelled training runs
+(as above) or on benign runs only.
+
+New here: **JEPA-SCORE** ([Balestriero, Ballas, Rabbat & LeCun, 2025](https://huggingface.co/papers/2510.05949)).
+A JEPA trained to produce Gaussian embeddings (SIGReg does exactly that)
+implicitly learns the data density, and the log-density of an input is the
+sum of the log singular values of the encoder's Jacobian there. Low density =
+unusual call.
+
+![no labels](assets/no_labels.png)
+
+| Score (no labels) | AUC vs benign | AUC vs resisted | Hijacks caught @5% | Benign flagged (test) |
+|---|---|---|---|---|
+| seen-before (raw text) | 0.686 | 0.743 | 0% | 0.0% |
+| Mahalanobis (raw text) | 0.685 | 0.697 | 1% | 0.3% |
+| **k-NN (JEPA), JEPA on all runs** | 0.724 | **0.763 ± 0.010** | 3% | 0.7% |
+| Mahalanobis (JEPA), all runs | 0.679 | 0.667 ± 0.030 | 4% | 0.9% |
+| surprise (JEPA), all runs | 0.660 | 0.620 ± 0.022 | 8% | 5.0% |
+| JEPA-SCORE, all runs | 0.659 | 0.659 ± 0.008 | 7% | 3.0% |
+| k-NN (JEPA), benign runs | 0.690 | 0.746 ± 0.008 | 2% | 0.9% |
+| Mahalanobis (JEPA), benign runs | 0.684 | 0.660 ± 0.015 | 3% | 1.2% |
+| **surprise (JEPA), benign runs** | **0.731** | 0.660 ± 0.034 | **18%** | 4.6% |
+| JEPA-SCORE, benign runs | 0.660 | 0.642 ± 0.060 | 7% | 4.6% |
+
+For reference, with labels: probe on JEPA features, 50 labels **0.750**
+(Q1); probe with argument sources, 1,000 labels **0.93** (Q5).
+
+- **Ranking without labels ≈ 50 labels.** k-NN in JEPA latent space (0.763)
+  matches the 50-label probe (0.750) and beats the same k-NN on raw text
+  (0.743): the JEPA space makes "unusual" a bit more meaningful.
+- **But nothing label-free catches hijacks at a usable alarm rate**: at 5%
+  false alarms, 0–18%. The best is JEPA surprise with a JEPA trained on
+  benign runs (18% ± 8). Hijacked calls aren't the *most* unusual calls:
+  normal calls in unseen tasks look just as new.
+- **JEPA-SCORE works, but loses to simpler scores** (0.64–0.66 vs 0.76 for
+  k-NN), the same verdict as an independent image test
+  ([jepa-score-eval](https://github.com/itsanderz/jepa-score-eval)). Our JEPA is
+  small (an MLP on MiniLM vectors, 3,000 steps), so its density estimate may
+  be rough; the theory needs a well-trained JEPA.
+- **A handful of labels still matters**: going from 0 to 1,000 labels plus
+  argument sources lifts AUC from 0.76 to 0.93 and catches ~80% of hijacks.
+
+Colab A100, ~33 min (mostly the Jacobians for JEPA-SCORE).
+
 ### Q3: which agents are easiest to catch?
 
 ![per agent](assets/per_model.png)
@@ -263,6 +313,10 @@ pulls it back (spread ~1.1).
 - **It transfers to other attack phrasings** (Q7: AUC 0.90–0.99), because it
   looks at *where the agent's arguments came from*, not at how the injection
   was worded.
+- **Without labels it ranks but doesn't alarm** (Q9): k-NN in JEPA space
+  matches a 50-label probe (AUC 0.76), but no label-free score catches more
+  than 18% of hijacks at 5% false alarms. JEPA-SCORE works (0.64–0.66) but
+  loses to k-NN.
 - **Caveats.** One attack type (`important_instructions`); 3 label samples per
   point; the Q2 probe isn't seeded, so its numbers move by about ±0.01 between runs; per-agent numbers rest on 11–35 hijacked runs; the dataset
   download is ~500 MB.
@@ -279,7 +333,8 @@ pulls it back (spread ~1.1).
 
 ## Run
 
-Click the Colab badge above, pick a GPU runtime, then Run all. Or locally:
+Click the Colab badge above, pick a GPU runtime, then Run all. Q9 is a
+separate notebook, [`no_labels.ipynb`](no_labels.ipynb). Or locally:
 
 ```bash
 uv run --with torch --with sentence-transformers --with matplotlib \

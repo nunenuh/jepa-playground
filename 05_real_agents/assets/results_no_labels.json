@@ -1,0 +1,158 @@
+{
+ "dojo_commit": "089ed468cf3ed0322acc66b0211f26d9d90dbf60",
+ "seeds": 3,
+ "results": {
+  "seen-before (raw)": {
+   "mean": {
+    "AUC vs benign": 0.6864731311798096,
+    "AUC vs resisted": 0.7425504326820374,
+    "recall hijacked": 0.0,
+    "flag rate benign": 0.0,
+    "flag rate resisted": 0.0
+   },
+   "std": null
+  },
+  "Mahalanobis (raw)": {
+   "mean": {
+    "AUC vs benign": 0.6848717927932739,
+    "AUC vs resisted": 0.6966809034347534,
+    "recall hijacked": 0.009433962404727936,
+    "flag rate benign": 0.003076923079788685,
+    "flag rate resisted": 0.010178117081522942
+   },
+   "std": null
+  },
+  "k-NN (JEPA), JEPA on all runs": {
+   "mean": {
+    "AUC vs benign": 0.7235429485638937,
+    "AUC vs resisted": 0.7633694410324097,
+    "recall hijacked": 0.025157233079274494,
+    "flag rate benign": 0.007179487030953169,
+    "flag rate resisted": 0.0031099802193542323
+   },
+   "std": {
+    "AUC vs benign": 0.011411326937377453,
+    "AUC vs resisted": 0.010430516675114632,
+    "recall hijacked": 0.035716407001018524,
+    "flag rate benign": 0.0020512822084128857,
+    "flag rate resisted": 0.0017656200798228383
+   }
+  },
+  "Mahalanobis (JEPA), JEPA on all runs": {
+   "mean": {
+    "AUC vs benign": 0.6794791221618652,
+    "AUC vs resisted": 0.6665226419766744,
+    "recall hijacked": 0.036163522551457085,
+    "flag rate benign": 0.008547008348007997,
+    "flag rate resisted": 0.01243992087741693
+   },
+   "std": {
+    "AUC vs benign": 0.025640100240707397,
+    "AUC vs resisted": 0.030043307691812515,
+    "recall hijacked": 0.019063452258706093,
+    "flag rate benign": 0.0005921542760916054,
+    "flag rate resisted": 0.000979389762505889
+   }
+  },
+  "surprise (JEPA), JEPA on all runs": {
+   "mean": {
+    "AUC vs benign": 0.6604531407356262,
+    "AUC vs resisted": 0.6204237143198649,
+    "recall hijacked": 0.08490566288431485,
+    "flag rate benign": 0.049914527063568435,
+    "flag rate resisted": 0.06841956575711568
+   },
+   "std": {
+    "AUC vs benign": 0.01769055798649788,
+    "AUC vs resisted": 0.02246461622416973,
+    "recall hijacked": 0.021615924313664436,
+    "flag rate benign": 0.022595159709453583,
+    "flag rate resisted": 0.029102874919772148
+   }
+  },
+  "JEPA-SCORE, JEPA on all runs": {
+   "mean": {
+    "AUC vs benign": 0.6585421363512675,
+    "AUC vs resisted": 0.6593264738718668,
+    "recall hijacked": 0.07389937092860539,
+    "flag rate benign": 0.030427349110444386,
+    "flag rate resisted": 0.03307888035972913
+   },
+   "std": {
+    "AUC vs benign": 0.01408057939261198,
+    "AUC vs resisted": 0.007897223345935345,
+    "recall hijacked": 0.022291582077741623,
+    "flag rate benign": 0.011975575238466263,
+    "flag rate resisted": 0.012722646817564964
+   }
+  },
+  "k-NN (JEPA), JEPA on benign runs": {
+   "mean": {
+    "AUC vs benign": 0.690359632174174,
+    "AUC vs resisted": 0.745971143245697,
+    "recall hijacked": 0.022012578944365185,
+    "flag rate benign": 0.008547008348007997,
+    "flag rate resisted": 0.006502685913195212
+   },
+   "std": {
+    "AUC vs benign": 0.0028662707190960646,
+    "AUC vs resisted": 0.007734350860118866,
+    "recall hijacked": 0.021786803379654884,
+    "flag rate benign": 0.003133385209366679,
+    "flag rate resisted": 0.001958779525011778
+   }
+  },
+  "Mahalanobis (JEPA), JEPA on benign runs": {
+   "mean": {
+    "AUC vs benign": 0.6838284134864807,
+    "AUC vs resisted": 0.6598212520281473,
+    "recall hijacked": 0.03144654134909312,
+    "flag rate benign": 0.011623931272576252,
+    "flag rate resisted": 0.016398077830672264
+   },
+   "std": {
+    "AUC vs benign": 0.011183235794305801,
+    "AUC vs resisted": 0.015191876329481602,
+    "recall hijacked": 0.010893401689827442,
+    "flag rate benign": 0.004624871537089348,
+    "flag rate resisted": 0.002134531270712614
+   }
+  },
+  "surprise (JEPA), JEPA on benign runs": {
+   "mean": {
+    "AUC vs benign": 0.7308417956034342,
+    "AUC vs resisted": 0.659893254439036,
+    "recall hijacked": 0.1839622656504313,
+    "flag rate benign": 0.04649572571118673,
+    "flag rate resisted": 0.08340401388704777
+   },
+   "std": {
+    "AUC vs benign": 0.008982942439615726,
+    "AUC vs resisted": 0.03384452313184738,
+    "recall hijacked": 0.07722031325101852,
+    "flag rate benign": 0.03133384883403778,
+    "flag rate resisted": 0.061100106686353683
+   }
+  },
+  "JEPA-SCORE, JEPA on benign runs": {
+   "mean": {
+    "AUC vs benign": 0.6603451172510783,
+    "AUC vs resisted": 0.6416347821553549,
+    "recall hijacked": 0.0676100639005502,
+    "flag rate benign": 0.04615384588638941,
+    "flag rate resisted": 0.043539724623163543
+   },
+   "std": {
+    "AUC vs benign": 0.04503607749938965,
+    "AUC vs resisted": 0.06031910702586174,
+    "recall hijacked": 0.03210782632231712,
+    "flag rate benign": 0.019648456946015358,
+    "flag rate resisted": 0.022921698167920113
+   }
+  }
+ },
+ "labelled_reference": {
+  "probe, jepa, 50 labels (Q1)": 0.75,
+  "probe + argument sources, 1,000 labels (Q5)": 0.93
+ }
+}
