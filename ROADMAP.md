@@ -63,7 +63,7 @@ data and checkpoints on Hugging Face.
 - [x] **Velocity check** ([Velocity Blind Spot](https://huggingface.co/papers/2610.04585)): one latent has positions (R² 0.97–0.99) but no velocity (≈ 0); two latents recover it (0.71–0.85)
 - [ ] ~~Optional: TI-JEPA fix~~ skipped: the predictor's 3-frame history already catches frozen/reversed motion
 - [x] Surprise on impossible Push-T rollouts: teleported 1.00, reversed 0.99, frozen 0.93 AUC (ours); unlike V-JEPA 2 in 07
-- [ ] Live demo: Push-T in a window, the JEPA plans, you interfere with the mouse, surprise meter
+- [x] Live demo ([`play.sh`](09_world_model/play.sh)): Push-T in a window, the JEPA plans, you teleport/freeze/drive, live surprise; subgoal chains finish 2/21 episodes (long-horizon wall)
 
 Effort: ~1 day. GPU: A100, a few hours.
 

@@ -5,7 +5,8 @@ laptop GPU. Part 2: train our own on a Colab A100, then plan with it on the
 laptop: **78% success after 3.5 h of training, on par with the official
 checkpoint (74%)**. Part 3: what the latent knows: **positions yes,
 velocity no (from one frame)**, yet the predictor catches frozen, reversed and
-teleported motion (AUC 0.93–1.00).
+teleported motion (AUC 0.93–1.00). Part 4: **play with it live** in a window
+([`play.sh`](play.sh)).
 
 Experiments 01–08 only *watched*: they predicted what comes next. A world
 model that **plans** also takes actions: given the current camera image and a
@@ -163,6 +164,51 @@ moved and turned). 440 clips from the validation episodes.
 
 Raw numbers: [`assets/results_probe.json`](assets/results_probe.json). The
 re-rendered frames match the dataset's pixels (mean difference 0.3/255).
+
+## Part 4: play with it (live window)
+
+[`live.py`](live.py) / [`play.sh`](play.sh): Push-T in a window on your
+desktop. The JEPA plans and pushes; you can interfere and watch its surprise.
+
+```bash
+./09_world_model/play.sh                         # our model, starting at validation episode 2
+./09_world_model/play.sh --model quentinll/lewm-pusht --episode 11
+```
+
+| Key / mouse | What happens |
+|---|---|
+| (nothing) | The JEPA follows an expert episode as a chain of subgoals, each 25 steps ahead (the goal image, top right) |
+| drag the T | Teleport it: impossible, so surprise spikes (orange line on the graph); the JEPA replans |
+| F | Freeze the world for one block: the pointer "moves" but nothing happens, surprise spikes |
+| SPACE | You drive: the pointer follows your mouse; the JEPA still predicts and shows surprise |
+| G, Q / E | Your own goal at the mouse, turned with Q / E (experimental, see below) |
+| R / ESC | Next episode / quit |
+
+![live](assets/live_screenshot.png)
+
+(Screenshot from the test mode: the T was teleported at the orange line.)
+
+What it shows, measured with `live.py --eval-episodes 21`:
+
+- **The planner matches the official evaluation.** Our CEM, on LeWM's own
+  task (start mid-episode, goal 25 steps ahead, 50 steps): 21/30 = 70% (eval:
+  78%). Replanning after every 2 blocks instead of 5 drops it to 43%: the plan
+  always aims to arrive at the last step, so replanning early keeps pushing
+  the arrival back.
+- **Long tasks are the wall.** Following whole expert episodes as subgoal
+  chains, it reaches 28 of 109 subgoals (26%) and finishes 2 of 21 episodes
+  (2 and 11). One miss makes the next subgoal farther, and failures cascade.
+- **Your own goals mostly fail** (1 of 20 goals 40 px / 20° away, even with the
+  goal latent averaged over 16 pointer positions so the planner aims for the
+  T, not the pointer): from a random start the pointer first has to walk
+  around the T, which is beyond a 25-step plan. This is the long-horizon
+  blocker in [RESEARCH_LANDSCAPE](../RESEARCH_LANDSCAPE.md) (hierarchical
+  planning, H-JEPA, is the proposed fix).
+- **Surprise works live.** Normal steps sit around 0.01–0.03; a teleport jumps
+  to ~0.3 (10–20×).
+
+Needs an X11 desktop. `play.sh` lets the container's root user draw on your
+display (`xhost +SI:localuser:root`) and takes it back on exit.
 
 ## Run it on your laptop (Docker)
 
