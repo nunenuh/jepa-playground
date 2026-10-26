@@ -51,6 +51,8 @@ architecture diagram, results with a baseline, intuitive pictures, raw numbers.
 
 ## Reading
 
+Where JEPA research stands, its open problems, and who uses it for security: [RESEARCH_LANDSCAPE.md](RESEARCH_LANDSCAPE.md).
+
 1. Meta AI blog — I-JEPA
 2. Assran et al., 2023 — *Self-Supervised Learning from Images with a Joint-Embedding Predictive Architecture* (I-JEPA)
 3. Balestriero & LeCun, 2025 — *LeJEPA*
