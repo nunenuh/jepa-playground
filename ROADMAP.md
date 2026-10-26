@@ -91,6 +91,21 @@ Effort: ~1–2 days. GPU: T4 or A100.
 | V-JEPA 2.1 / ViT-giant on IntPhys 2 | Only if 08 Part 2 lands far below the paper |
 | jepa.cpp: run a JEPA guardrail on a laptop / edge device | Deployment story for 10 |
 
+## Spin-off: a JEPA agent that lives in a game world (new repo)
+
+Planned as a separate repo (decided 2026-10-27). JEPA as a *player* inside a
+game, not a game generator. Each failure seen in 09 gets its matching piece:
+
+- Long tasks: H-JEPA hierarchy + an LLM breaking tasks into steps
+- Too slow (~1 s per move): a learned fast policy (LeWAM / Dreamer-style, trained in JEPA's imagination)
+- No memory: a memory bank / map of past latents
+- No goals of its own: curiosity from surprise + goals from the user or an LLM
+
+Plan: Craftax (2D Minecraft, GPU-fast data) → LeWM on Colab A100 (a few
+hours) → H-JEPA (about a day, in resumable 3–6 h chunks) → curiosity + LLM
+goals → live window on the laptop. Not realistic on Colab: Minecraft-scale
+worlds, V-JEPA 2 / RoboJEPA-scale models.
+
 ## Housekeeping
 
 - [ ] Each experiment's "What it shows" links the matching blocker in RESEARCH_LANDSCAPE
