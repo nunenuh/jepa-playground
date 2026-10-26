@@ -33,7 +33,7 @@ What's next and why: [ROADMAP.md](ROADMAP.md).
 | 05 | hijacked vs resisted AUC 0.61 (raw, 50 labels) | **0.75** (JEPA, 50 labels) · **0.94** with argument sources (~80% caught at 5% false alarms; AUC 0.90–0.99 on unseen attack types) · 0.77 trained on synthetic only | AgentDojo, unseen tasks + unseen attacker goals, Colab T4. [Details and figures](05_real_agents/README.md) |
 | 06 | anomaly AUC 0.474 (raw top-5 surprise, drowned by foliage) | **0.683** (spatially calibrated surprise) · **0.832** top-5 / **0.925** whole-frame (seen-before latent bank) · adapting the predictor: prediction −24% error, detection no better | UCSD Ped2, zero-shot + predictor fine-tune (`facebook/vjepa2-vitl-fpc64-256`), Colab T4 (~16 min). [Details and figures](06_vjepa2_video/README.md) |
 | 07 | zero-shot surprise AUC 0.19 (reverse) / 0.32 (freeze) | **0.96–1.00** on all 4 types with the adapted predictor | Ped2 clips edited to break physics, Colab T4 (~17 min). [Details and figures](07_physical_anomalies/README.md) |
-| 08 | pairwise accuracy 50.2% zero-shot (chance) | 47.0% adapted: no gain; paper's ViT-huge 57.5% | IntPhys 2 main set, 506 pairs, Colab T4 (~80 min). [Details and figures](08_intphys2/README.md) |
+| 08 | pairwise accuracy 50.2% (ViT-L, one setting: chance) | **54.5%** ViT-H with the official protocol (held-out 54.2%), within noise of the paper's 57.5%; ViT-L ≈ ViT-H; adapting: no gain | IntPhys 2 main set, 506 pairs, Colab T4 + A100. [Details and figures](08_intphys2/README.md) |
 
 ## Run
 

@@ -21,18 +21,19 @@ Status: ✅ done · 🔄 in progress · ⏳ next · 💡 later
 
 ## Plan
 
-### 1. 🔄 08 Part 2: match the IntPhys 2 paper
+### 1. ✅ 08 Parts 2–3: match the IntPhys 2 paper
 
 The paper reports V-JEPA 2 ViT-huge at 57.5% (best of ~12 settings); Part 1
 got 50.2% with ViT-L and one setting.
 
 - [x] Read the official evaluation protocol ([jepa-intuitive-physics](https://github.com/facebookresearch/jepa-intuitive-physics))
-- [x] Sweep script: 2 frame rates × 3 context lengths × 2 patch scores × 2 time aggregations = 24 settings ([`intphys2_sweep.py`](08_intphys2/intphys2_sweep.py), on branch `wip-08b`)
+- [x] Sweep script: 2 frame rates × 3 context lengths × 2 patch scores × 2 time aggregations = 24 settings ([`intphys2_sweep.py`](08_intphys2/intphys2_sweep.py))
 - [x] Smoke test on Colab A100
-- [ ] Full run: ViT-huge, then ViT-large
-- [ ] Report best setting (paper's way) **and** held-out (setting picked on the other half of the scenes)
-- [ ] ViT-huge vs ViT-large: how much of the gap is size?
-- [ ] README Part 2, root README results row, merge to `main`, delete `wip-08b`
+- [x] Full run: ViT-huge, then ViT-large (sweep: best 53.8% / 54.0%, held-out 50.4% / 53.4%)
+- [x] Report best setting (paper's way) **and** held-out (setting picked on the other half of the scenes)
+- [x] Part 3: the IntPhys 2 authors' own protocol (48-frame windows, 12–42 context frames, max-context mode): **54.5%**, held-out 54.2%, within noise of 57.5%
+- [x] ViT-huge vs ViT-large: size doesn't explain the gap (ViT-L ≈ ViT-H)
+- [x] README Parts 2–3, root README results row, merge to `main`
 
 ### 2. ⏳ Quick wins: JEPA-SCORE and simple baselines
 
