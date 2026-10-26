@@ -20,6 +20,8 @@ learn meaning (shape, structure, what happens next) and ignore noise.
 | 07 | [Physically impossible video](07_physical_anomalies/) | V-JEPA 2 surprise on real clips edited to break physics (teleport, reverse, freeze, vanish) | ✅ | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nunenuh/jepa-playground/blob/main/07_physical_anomalies/physical_anomalies.ipynb) |
 | 08 | [IntPhys 2](08_intphys2/) | V-JEPA 2 surprise on Meta's intuitive-physics benchmark (permanence, immutability, continuity, solidity) | ✅ | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nunenuh/jepa-playground/blob/main/08_intphys2/intphys2.ipynb) |
 
+What's next and why: [ROADMAP.md](ROADMAP.md).
+
 ## Results
 
 | # | Before training | After training | Setup |

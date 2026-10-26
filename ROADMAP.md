@@ -1,0 +1,94 @@
+# Roadmap
+
+What's done, what's next, and why. Based on the gaps found in
+[RESEARCH_LANDSCAPE.md](RESEARCH_LANDSCAPE.md) (October 2026). Every new
+experiment follows [EXPERIMENT_STANDARD.md](EXPERIMENT_STANDARD.md).
+
+Status: ✅ done · 🔄 in progress · ⏳ next · 💡 later
+
+## Done
+
+| # | Experiment | Covers |
+|---|---|---|
+| 01 | MNIST JEPA | Latent prediction, EMA, linear probe |
+| 02 | Collapse | Blocker 1: collapse (EMA, stop-grad, SIGReg) |
+| 03 | Moving ball | Latent world model, surprise as anomaly |
+| 04 | Agent guardrail (synthetic) | JEPA on agent tool-call trajectories |
+| 05 | Guardrail on real agents | AgentDojo tool-call traces of 29 real LLM agents, behaviour only |
+| 06 | V-JEPA 2 on CCTV | Surprise vs "seen before" on real video |
+| 07 | Physically impossible video | Blocker 5: predictable-but-wrong futures |
+| 08 | IntPhys 2 | Blocker 5: intuitive physics, near chance |
+
+## Plan
+
+### 1. 🔄 08 Part 2: match the IntPhys 2 paper
+
+The paper reports V-JEPA 2 ViT-huge at 57.5% (best of ~12 settings); Part 1
+got 50.2% with ViT-L and one setting.
+
+- [x] Read the official evaluation protocol ([jepa-intuitive-physics](https://github.com/facebookresearch/jepa-intuitive-physics))
+- [x] Sweep script: 2 frame rates × 3 context lengths × 2 patch scores × 2 time aggregations = 24 settings ([`intphys2_sweep.py`](08_intphys2/intphys2_sweep.py), on branch `wip-08b`)
+- [x] Smoke test on Colab A100
+- [ ] Full run: ViT-huge, then ViT-large
+- [ ] Report best setting (paper's way) **and** held-out (setting picked on the other half of the scenes)
+- [ ] ViT-huge vs ViT-large: how much of the gap is size?
+- [ ] README Part 2, root README results row, merge to `main`, delete `wip-08b`
+
+### 2. ⏳ Quick wins: JEPA-SCORE and simple baselines
+
+Blocker 7 (no "how normal is this" score) and honest baselines. An
+independent test found JEPA-SCORE losing to Mahalanobis on images
+([jepa-score-eval](https://github.com/itsanderz/jepa-score-eval)), so check it
+honestly.
+
+- [ ] JEPA-SCORE ([paper](https://huggingface.co/papers/2510.05949)): density from the encoder's Jacobian, no retraining
+  - [ ] in 05: does it separate hijacked from resisted runs **without labels**?
+  - [ ] in 06: vs surprise and seen-before on Ped2
+- [ ] Mahalanobis and k-NN baselines in 04, 05, 06
+- [ ] Add rows to each README's results table (keep failures)
+
+Effort: ~half a day. GPU: T4 is enough.
+
+### 3. ⏳ 09: a world model that plans (LeWorldModel on Push-T)
+
+The biggest trend: JEPA world models that choose actions. The repo has no
+actions or planning yet. LeWM is the most-starred JEPA repo, small, and has
+data and checkpoints on Hugging Face.
+
+- [ ] Reproduce LeWM on Push-T ([code](https://github.com/lucas-maes/le-wm), data `quentinll/lewm-pusht`)
+- [ ] Planning success vs a baseline (copy the demonstrations / random actions)
+- [ ] **Velocity check** ([Velocity Blind Spot](https://huggingface.co/papers/2610.04585)): linear probe for position vs velocity on the latents; ties back to 07's freeze/reverse failure
+- [ ] Optional: TI-JEPA fix (pose code + motion code), does planning improve?
+- [ ] Surprise on impossible Push-T rollouts (teleporting block): links 03/07 to planning
+
+Effort: ~1 day. GPU: A100, a few hours.
+
+### 4. ⏳ 10: agent security beyond 05
+
+05 already detects hijacks from AgentDojo tool-call traces, but needs labels
+(AUC 0.75 with 50 labels, 0.94 with argument sources) and is tested on one
+benchmark. Nobody else has published JEPA for agent security, so this is the
+repo's unique contribution.
+
+- [ ] **No labels**: JEPA-SCORE and surprise from 05's JEPA; how close to the labelled probe?
+- [ ] **PRA-style paired views** ([JEPA-Align](https://huggingface.co/datasets/memo-ozdincer/jepa-qwen3-32b-pure-baselines-2026-05-25)): train so that an attacked run and a clean run of the same user task map close together; a run that drifts away is suspicious
+- [ ] **New benchmark, no retraining**: train on AgentDojo, test on another agent-security benchmark (Agent Security Bench or InjecAgent); does it transfer?
+- [ ] Newer threats: malicious MCP servers / tool descriptions, if a dataset exists
+- [ ] Write-up for a blog post / portfolio
+
+Effort: ~1–2 days. GPU: T4 or A100.
+
+### 5. 💡 Later
+
+| Idea | Why later |
+|---|---|
+| H-JEPA (hierarchical world model) | Heavy: 22–90 GB data, multi-level training |
+| LeWAM (world + action model) | After 09; needs robot data and flow matching |
+| V-JEPA 2.1 / ViT-giant on IntPhys 2 | Only if 08 Part 2 lands far below the paper |
+| jepa.cpp: run a JEPA guardrail on a laptop / edge device | Deployment story for 10 |
+
+## Housekeeping
+
+- [ ] Each experiment's "What it shows" links the matching blocker in RESEARCH_LANDSCAPE
+- [ ] Keep the root README tables (experiments, results) in sync with this file
+- [ ] Update RESEARCH_LANDSCAPE when new papers land (last check: 2026-10-26)
