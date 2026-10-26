@@ -165,3 +165,54 @@ Takeaways:
 - **Efficiency is the other race**: LeVJEPA/SALT get the same results with
   5–20× less compute.
 - JEPA sizes (1–8B) are still far below LLMs (100B–1T+).
+
+## Production: where JEPA stands and what it needs
+
+**Status (Oct 2026): no confirmed production product built on a JEPA world
+model.** V-JEPA 2 is licensed for commercial use, but adoption is research
+and pilots: lab robots (65–80% pick-and-place), startup claims (DangerLabs
+`dm-jepa-1.5`, ZhiChengAIR Chengling-PWM), hobby arms (VLA-JEPA on LeRobot),
+edge tooling (jepa.cpp), and LeCun's AMI Labs ($1.03B seed) targeting
+industry, robotics and healthcare. The joint-embedding *cousin* DINOv2 is in
+production (e.g. global tree-canopy mapping with WRI): learning without
+labels in embedding space is proven; the predictive world-model part isn't yet.
+
+### Blockers
+
+| # | Blocker | Evidence |
+|---|---|---|
+| 1 | Accuracy: demo-level, not 95–99%+ | IntPhys 2 ~55% vs humans 96% ([08](08_intphys2/)); Push-T 74% ([09](09_world_model/)) |
+| 2 | Rare cases (long tail) | missed unusual objects ([06](06_vjepa2_video/)), freeze/reverse zero-shot ([07](07_physical_anomalies/)) |
+| 3 | Doesn't know when it's wrong (no calibrated uncertainty) | JEPA-SCORE weak ([04](04_agent_guardrail/), [05](05_real_agents/) Q9) |
+| 4 | Thresholds drift on new tasks/scenes | false alarms 2–14% ([05](05_real_agents/) Q6/Q8) |
+| 5 | Black-box latents, no certification path | no standard safety evaluation for world models |
+| 6 | Short planning horizons | H-JEPA only just started |
+| 7 | Needs action data per robot; sim-to-real gap | V-JEPA 2-AC: 62 h robot data; RoboJEPA: 12 embodiments |
+| 8 | No language interface | VL-JEPA early |
+| 9 | Strong, proven alternatives | VLAs (π0, RT-2), classic control, LLM tooling |
+| 10 | Immature tooling | 4 version breakages just to run LeWM ([09](09_world_model/)) |
+
+### What it needs to enter production
+
+**Better models:** (1) 95–99%+ accuracy on real tasks, (2) calibrated
+uncertainty to hand off to a human, (3) robustness to rare cases,
+(4) long-horizon planning, (5) motion and fine detail, (6) adapting from
+little action data, (7) a language interface.
+
+**Trust:** (8) realistic standard benchmarks, (9) interpretability of the
+latents, (10) stable decision thresholds, (11) safety evaluation and
+certification (ISO 26262, medical, EU AI Act), (12) adversarial robustness.
+
+**Engineering:** (13) stable libraries, (14) fast inference on cheap
+hardware, (15) pretrained models per domain, (16) simple fine-tuning recipes,
+(17) drift monitoring, (18) integration with existing stacks (ROS, SIEM/SOC,
+MLOps).
+
+**Business:** (19) a clear win over alternatives, (20) low-risk entry roles
+first, (21) a first success story, (22) people who know it.
+
+Likely path: research and demos (now) → low-risk roles: feature extractor,
+anomaly pre-filter, human-in-the-loop flagging (1–2 years) → core
+decision-making: robot control, driving, autonomous agents (later). A JEPA
+guardrail that *flags* agent actions for review fits the low-risk entry role
+(points 10, 12, 17, 18, 20).
