@@ -94,7 +94,7 @@ Effort: ~1–2 days. GPU: T4 or A100.
 
 ## Spin-off: a JEPA agent that lives in a game world (new repo)
 
-Planned as a separate repo (decided 2026-10-27). JEPA as a *player* inside a
+Now its own repo: [jepa-game-agent](https://github.com/nunenuh/jepa-game-agent) (created 2026-10-27). JEPA as a *player* inside a
 game, not a game generator. Each failure seen in 09 gets its matching piece:
 
 - Long tasks: H-JEPA hierarchy + an LLM breaking tasks into steps
