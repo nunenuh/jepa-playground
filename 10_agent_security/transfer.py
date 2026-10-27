@@ -506,5 +506,33 @@ ax.set_title("AgentDojo-trained detector on InjecAgent runs")
 fig.tight_layout()
 fig.savefig(OUT / "scores.png", dpi=110)
 
+results["hist"] = {"edges": [round(x, 3) for x in bins.tolist()], "threshold": round(thr, 3),
+                   **{k: torch.histc(si[torch.tensor([r["kind"] == k for r in injec_runs], device=DEVICE)].clamp(bins[0].item(), bins[-1].item()),
+                                     bins=len(bins) - 1, min=bins[0].item(), max=bins[-1].item()).int().tolist()
+                      for k in ["benign", "resisted", "hijacked"]}}
+
+# one case, two agent behaviours: the call scores of a hijacked run and a resisted run that also acted
+@torch.no_grad()
+def per_call(n):
+    """Score of each call in run n (the probe's max is the run score)."""
+    m = MC["injecagent"][n]
+    out = []
+    for j in range(int(m.sum())):
+        mask = torch.zeros_like(MC["injecagent"][n:n + 1])
+        mask[0, j] = True
+        out.append(round(probe(FEATS["injecagent"][n:n + 1], mask).item(), 2))
+    return out
+
+
+hij = [n for n, r in enumerate(injec_runs) if r["kind"] == "hijacked"]
+res_acted = {(r["task"], r["attack"]): n for n, r in enumerate(injec_runs) if r["kind"] == "resisted" and len(r["steps"]) > 1}
+pair = next(((h, res_acted[(injec_runs[h]["task"], injec_runs[h]["attack"])]) for h in hij
+             if (injec_runs[h]["task"], injec_runs[h]["attack"]) in res_acted), None)
+if pair:
+    results["example"] = [{"kind": injec_runs[n]["kind"], "task": injec_runs[n]["task"],
+                           "calls": [st["call"][:120] for st in injec_runs[n]["steps"]],
+                           "result": injec_runs[n]["steps"][0]["result"][:300], "scores": per_call(n)} for n in pair]
+results["example_threshold"] = round(thr, 3)
+
 (OUT / "results.json").write_text(json.dumps(results, indent=1))
 print(json.dumps(results))
