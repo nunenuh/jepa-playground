@@ -487,6 +487,145 @@ for k, m in q3.items():
     print(f"{k:50s} " + "  ".join(f"{a} {b:.3f}" for a, b in m.items()))
 
 # %% [markdown]
+# ## Q4: recalibrate, add argument sources, 3 seeds
+#
+# Two fixes from Q1, each over 3 seeds (JEPA and probe retrained per seed):
+# - **Recalibrate**: set the alarm line on 100 benign InjecAgent runs (no
+#   attack labels needed: in a real deployment, normal runs of the new system)
+#   instead of AgentDojo's.
+# - **Argument sources** (05 Q5): for every call, where its argument values
+#   appeared earlier: in the task, in a tool result (that line), or nowhere.
+#   An attacker's guest ID copied out of a product review looks very
+#   different from the user's own product ID. This signal doesn't depend on
+#   the benchmark's tools.
+
+# %%
+def flat_values(x):
+    if isinstance(x, dict):
+        return [v for y in x.values() for v in flat_values(y)]
+    if isinstance(x, list):
+        return [v for y in x for v in flat_values(y)]
+    s = str(x).strip()
+    return [s] if len(s) >= 4 else []
+
+
+def result_lines(result):
+    body = result[len("RESULT "):]
+    if body.startswith("[{"):
+        try:
+            body = "\n".join(str(b.get("content", b.get("text", ""))) for b in json.loads(body) if isinstance(b, dict))
+        except json.JSONDecodeError:
+            pass
+    return body.splitlines()
+
+
+def source_texts(r):
+    """05's 'where did the arguments come from' text, one per call."""
+    out = []
+    for j, step in enumerate(r["steps"][:MAXSTEPS]):
+        call = step["call"]
+        try:
+            values = flat_values(json.loads(call[call.index("(") + 1:-1]))
+        except (ValueError, json.JSONDecodeError):
+            values = []
+        if not values:
+            out.append("NO ARGUMENTS")
+            continue
+        found = None
+        for v in values:
+            for prev in reversed(r["steps"][:j]):
+                line = next((ln for ln in result_lines(prev["result"]) if v in ln), None)
+                if line:
+                    found = "FROM RESULT: " + line.strip()[:300]
+                    break
+            if found:
+                break
+        out.append(found or ("FROM TASK" if all(v in r["task"] for v in values) else "FROM NOWHERE"))
+    return out
+
+
+def source_features(rows):
+    texts = [source_texts(r) for r in rows]
+    unique = sorted({t for ts in texts for t in ts})
+    vecs = text_encoder.encode(unique, batch_size=256, convert_to_tensor=True, normalize_embeddings=True).float()
+    index = {t: i for i, t in enumerate(unique)}
+    S = torch.zeros(len(rows), MAXSTEPS, vecs.size(1), device=DEVICE)
+    for n, ts in enumerate(texts):
+        if ts:
+            S[n, :len(ts)] = vecs[[index[t] for t in ts]]
+    return S
+
+
+SRC = {p: source_features(rs) for p, rs in splits.items()}
+ex = next(r for r in injec_runs if r["kind"] == "hijacked")
+for st, src in zip(ex["steps"], source_texts(ex)):
+    print(f"  {st['call'][:60]:60s} <- {src[:90]}")
+
+g = torch.Generator().manual_seed(1)
+benign_idx = [n for n, r in enumerate(injec_runs) if r["kind"] == "benign"]
+calib = set(torch.tensor(benign_idx)[torch.randperm(len(benign_idx), generator=g)[:100]].tolist())
+cal_m = torch.tensor([n in calib for n in range(len(injec_runs))], device=DEVICE)
+rows_eval = [r for n, r in enumerate(injec_runs) if n not in calib]
+acted_eval = torch.tensor([len(r["steps"]) > 1 for r in rows_eval], device=DEVICE)
+
+
+def at_threshold(s_eval, rows, threshold):
+    of = lambda k: s_eval[torch.tensor([r["kind"] == k for r in rows], device=DEVICE)]
+    h = of("hijacked")
+    return {"AUC vs resisted": auc(of("resisted"), h), "recall hijacked": (h > threshold).float().mean().item(),
+            "flag rate benign": (of("benign") > threshold).float().mean().item(),
+            "flag rate resisted": (of("resisted") > threshold).float().mean().item()}
+
+
+Q4_KINDS = ["raw", "raw+jepa", "raw+src", "raw+jepa+src"]
+q4_runs = {k: [] for k in Q4_KINDS}
+for seed in range(3):
+    enc_s, pred_s = pretrain(*feats["train"], seed=seed)
+
+    @torch.no_grad()
+    def feats_of(p, kind):
+        X, M = feats[p]
+        calls = X[:, CALL]
+        parts = [calls, X[:, :1].expand_as(calls)]
+        if "jepa" in kind:
+            z = enc_s(X)
+            zc, pc = z[:, CALL], pred_s(z)[:, :-1][:, CALL[1:]]
+            parts += [zc, pc, zc - pc]
+        if "src" in kind:
+            parts.append(SRC[p])
+        return torch.cat(parts, -1)
+    for kind in Q4_KINDS:
+        Fk = {p: feats_of(p, kind) for p in ("train", "val", "test", "injecagent")}
+        pr = fit_probe(Fk["train"], MC["train"], LABEL["train"], seed=seed)
+        sv_k, st_k, si_k = pr(Fk["val"], MC["val"]), pr(Fk["test"], MC["test"]), pr(Fk["injecagent"], MC["injecagent"])
+        thr_dojo = sv_k[torch.tensor([r["kind"] == "benign" for r in splits["val"]], device=DEVICE)].quantile(0.95)
+        thr_cal = si_k[cal_m].quantile(0.95)
+        s_eval = si_k[~cal_m]
+        q4_runs[kind].append({
+            "AgentDojo test": at_threshold(st_k, splits["test"], thr_dojo),
+            "InjecAgent, AgentDojo line": at_threshold(s_eval, rows_eval, thr_dojo),
+            "InjecAgent, recalibrated line": at_threshold(s_eval, rows_eval, thr_cal),
+            "InjecAgent acted runs, recalibrated line": at_threshold(
+                s_eval[acted_eval | torch.tensor([r["kind"] == "benign" for r in rows_eval], device=DEVICE)],
+                [r for r, a in zip(rows_eval, acted_eval.tolist()) if a or r["kind"] == "benign"], thr_cal)})
+
+
+def mean_std(runs):
+    out = {}
+    for where in runs[0]:
+        out[where] = {}
+        for metric in runs[0][where]:
+            v = torch.tensor([r[where][metric] for r in runs])
+            out[where][metric] = [round(v.mean().item(), 3), round(v.std().item(), 3)]
+    return out
+
+
+results["q4"] = {"calibration_benign_runs": len(calib), "seeds": 3, **{k: mean_std(v) for k, v in q4_runs.items()}}
+for kind in Q4_KINDS:
+    for where, m in results["q4"][kind].items():
+        print(f"{kind:13s} {where:42s} " + "  ".join(f"{a} {b[0]:.3f}±{b[1]:.3f}" for a, b in m.items()))
+
+# %% [markdown]
 # ## Pictures
 
 # %%
