@@ -1,40 +1,56 @@
 # 09 · A JEPA world model that plans (LeWorldModel)
 
-🔄 In progress. Part 1: run a trained JEPA world model in a simulator on a
-laptop GPU. Part 2: train our own on a Colab A100, then plan with it on the
-laptop: **78% success after 3.5 h of training, on par with the official
-checkpoint (74%)**. Part 3: what the latent knows: **positions yes,
-velocity no (from one frame)**, yet the predictor catches frozen, reversed and
-teleported motion (AUC 0.93–1.00). Part 4: **play with it live** in a window
-([`play.sh`](play.sh)). Part 5: **hierarchy (H-JEPA) fixes the long-horizon wall** in
-Visual AntMaze: 20% flat → 80% with 3 levels.
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nunenuh/jepa-playground/blob/main/09_world_model/train_colab.ipynb) (training only; planning runs in Docker on a laptop GPU)
 
 Experiments 01–08 only *watched*: they predicted what comes next. A world
-model that **plans** also takes actions: given the current camera image and a
-goal image, it imagines what each candidate action sequence would do, in
-latent space, and executes the one that ends closest to the goal. No reward,
-no reinforcement learning.
+model that **plans** also acts. Given the current camera image and a goal
+image, it imagines in latent space what each candidate action sequence would
+do, and executes the one that ends closest to the goal. No reward, no
+reinforcement learning.
 
-## How it plans
+In short:
+- **It plans:** 74% success in Push-T with the official checkpoint, **78% with
+  our own** trained 3.5 h on Colab (~1% of the official budget). Doing
+  nothing: 0%; random: 0–2%; replaying the expert's actions: 100%.
+- **What the latent knows:** positions yes, velocity no (from one frame);
+  the 3-frame predictor still catches frozen, reversed and teleported motion
+  (AUC 0.93–1.00).
+- **Play with it live** in a window ([`play.sh`](play.sh)): teleport the T,
+  freeze the world, watch the surprise.
+- **Its wall is long tasks** (2 of 21 whole episodes finished), and
+  **hierarchy fixes much of it**: H-JEPA in Visual AntMaze, 20% flat → 80%
+  with 3 levels.
 
-```
-camera image ─► encoder ─► latent ─┐
-                                   ├─► predictor(latent, actions) ─► imagined future latent
-300 candidate action sequences ────┘                                   │
-                                                                       ▼
-goal image ─► encoder ─► goal latent ──────────► cost = distance(imagined, goal)
-                                                                       │
-CEM: keep the 30 cheapest, resample around them, 30 rounds ◄───────────┘
-execute the first 5 steps of the best plan, look again, replan
-```
+## Architecture
 
-Model: [LeWorldModel](https://github.com/lucas-maes/le-wm) (LeCun, Balestriero
-et al., 2026), ~15M parameters (ViT-tiny encoder + transformer predictor),
-trained end to end from pixels with SIGReg (the anti-collapse loss from
-[02](../02_collapse/)). Official checkpoint
-[`quentinll/lewm-pusht`](https://huggingface.co/quentinll/lewm-pusht).
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/architecture-dark.svg">
+  <img alt="LeWorldModel: encoder, action encoder and predictor trained with MSE + SIGReg; planning with CEM over imagined latent rollouts toward a goal latent" src="assets/architecture-light.svg">
+</picture>
 
-## Part 1: planning in Push-T on a laptop
+Training: the encoder turns each frame into one latent, the predictor learns
+which latent comes next given the actions, SIGReg (from
+[02](../02_collapse/)) keeps the latents from collapsing. Planning: CEM tries
+300 action plans, rolls each out 5 blocks ahead with the predictor only (no
+simulator), scores it by the distance to the goal's latent, keeps the best 30
+and resamples around them, 30 rounds; then it does the first 5 moves and
+plans again.
+
+## Setup
+
+| Part | What it is |
+|---|---|
+| Model | [LeWorldModel](https://github.com/lucas-maes/le-wm) (LeCun, Balestriero et al., 2026), ~15M parameters: ViT-tiny encoder + transformer predictor, SIGReg; official checkpoint [`quentinll/lewm-pusht`](https://huggingface.co/quentinll/lewm-pusht) |
+| Task | Push-T: push the grey T to a goal pose with the blue pointer; start mid-episode, goal 25 steps later, 50 steps allowed (LeWM's evaluation) |
+| Our training | LeWM's Push-T expert data (18,685 episodes), 3 epochs / 13,791 steps, Colab A100, ~3.5 h |
+| Planner | CEM: 300 samples, top 30, 30 iterations, horizon 5 blocks of 5 moves, replan every 5 moves |
+| Evaluation | 50 episodes, same starts for every policy; Push-T normalisers from the 21 H-JEPA validation episodes |
+| Part 5 | [H-JEPA](https://huggingface.co/papers/2610.06805) released checkpoints in Visual AntMaze, first 10 of their 50 tasks, seed 42 |
+| Hardware | Training: Colab A100. Everything else: Docker on an RTX A2000 laptop (4 GB) |
+
+## Results
+
+### Part 1: planning in Push-T on a laptop
 
 **Push-T**: push the grey T so it matches a goal pose, using the blue pointer.
 Following LeWM's evaluation settings: start from a state of an expert
@@ -80,7 +96,7 @@ Notes:
   no exact number to compare with yet.
 
 
-## Part 2: training our own on Colab, planning on the laptop
+### Part 2: training our own on Colab, planning on the laptop
 
 Same model and recipe as the official checkpoint
 ([`train_colab.ipynb`](train_colab.ipynb), stable-worldmodel's
@@ -118,7 +134,7 @@ run is 100 epochs × 13,933 steps, ~100× more). Colab A100, ~3.5 h.
 Raw numbers: [`assets/results.json`](assets/results.json) (planning),
 [`assets/training.json`](assets/training.json) (training).
 
-## Part 3: what does the latent know? Velocity and impossible rollouts
+### Part 3: what does the latent know? Velocity and impossible rollouts
 
 [`probe.py`](probe.py), laptop GPU, ~10 min. Two questions:
 
@@ -175,7 +191,7 @@ moved and turned). 440 clips from the validation episodes.
 Raw numbers: [`assets/results_probe.json`](assets/results_probe.json). The
 re-rendered frames match the dataset's pixels (mean difference 0.3/255).
 
-## Part 4: play with it (live window)
+### Part 4: play with it (live window)
 
 [`live.py`](live.py) / [`play.sh`](play.sh): Push-T in a window on your
 desktop. The JEPA plans and pushes; you can interfere and watch its surprise.
@@ -220,7 +236,7 @@ What it shows, measured with `live.py --eval-episodes 21`:
 Needs an X11 desktop. `play.sh` lets the container's root user draw on your
 display (`xhost +SI:localuser:root`) and takes it back on exit.
 
-## Part 5: hierarchy fixes the long-horizon wall (H-JEPA in Visual AntMaze)
+### Part 5: hierarchy fixes the long-horizon wall (H-JEPA in Visual AntMaze)
 
 Parts 2–4 hit the same wall: LeWM plans ~25 steps ahead, so longer tasks
 fail. [H-JEPA](https://huggingface.co/papers/2610.06805) (Zhang, Terver,
@@ -260,6 +276,39 @@ Side-by-side video: [`assets/antmaze_task04_side_by_side.mp4`](assets/antmaze_ta
 
 Raw numbers: [`assets/results_antmaze.json`](assets/results_antmaze.json).
 
+## What it shows
+
+- **A JEPA world model plans without rewards.** It only learned to predict
+  latents, yet searching over its imagined futures pushes the T to the goal
+  in 3 of 4 episodes.
+- **Better prediction, better planning.** Unlike 06, here lower prediction
+  error turned straight into more successes (14% → 44% → 78% over 3 epochs):
+  the planner uses the predictions directly.
+- **Training is cheap; data loading is the bottleneck.** ~1% of the official
+  budget matched the official checkpoint; the GPU mostly waited for the HDF5
+  frames.
+- **One latent is a snapshot.** It has positions but no velocity; motion
+  comes from the predictor's 3-frame history, which is enough to catch
+  impossible motion that V-JEPA 2 missed in 07.
+- **What failed:** long tasks (whole episodes 2/21, your own goals 1/20),
+  because one plan only looks ~25 steps ahead. Replanning more often made it
+  worse (43%). Our model reads the block angle worse than the official one
+  (0.81 vs 0.97).
+- **Hierarchy is the fix that worked:** stacking world models that look
+  farther ahead took AntMaze from 20% to 80%, though 2 of 10 tasks still fail.
+
+## Experiments to try
+
+- Train one more epoch (or with a larger batch) and see if the block-angle
+  probe and the "frozen" AUC catch up with the official model.
+- Change the planner: `num_samples` 300 → 100 (faster, how much worse?), or
+  horizon 5 → 3 blocks.
+- Goals 50 steps ahead instead of 25: where does flat planning break down?
+- `play.sh`: teleport the T near the goal vs far from it and watch whether
+  the replan recovers.
+- H-JEPA on Push-T (the paper's 40% → 45%) to see the hierarchy's gain where
+  tasks are short.
+
 ## Run it on your laptop (Docker)
 
 Needs Docker with the NVIDIA runtime (`nvidia-container-toolkit`) and an
@@ -279,6 +328,11 @@ docker run --rm --gpus all \
   `random`.
 - Simulators render off-screen (pygame / EGL), so no display is needed; the
   videos land in `09_world_model/assets/videos/`.
+- Other parts: `probe.py` (Part 3) and `live.py` (Part 4) run in the same
+  image (commands at the top of each file, or `./09_world_model/play.sh`);
+  Part 5 has its own image: `docker build -t hjepa 09_world_model/hjepa`,
+  then the command at the top of [`hjepa/antmaze.py`](hjepa/antmaze.py).
+- Training: [`train_colab.ipynb`](train_colab.ipynb) on a Colab A100.
 - Pins, so it keeps working: `stable-worldmodel` at a fixed commit, PyTorch
   2.7.1 built for CUDA 12.6 (works with driver 560), `transformers < 5`
   (the released checkpoints use the 4.x ViT parameter names).

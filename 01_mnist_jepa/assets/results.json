@@ -1,0 +1,6 @@
+{
+ "note": "Colab T4 re-run of mnist_jepa.py (seed 0); the README's numbers are from the first run on an RTX A2000 laptop (56.1% -> 82.7%)",
+ "probe_accuracy": {"random_encoder": 0.5654999613761902, "jepa_encoder": 0.8369999527931213},
+ "per_epoch": [{"epoch": 1, "loss": 0.018588777631521225, "spread": 0.2083488404750824}, {"epoch": 2, "loss": 0.015005434863269329, "spread": 0.2109302580356598}, {"epoch": 3, "loss": 0.015210768207907677, "spread": 0.259053498506546}, {"epoch": 4, "loss": 0.019181987270712852, "spread": 0.33644288778305054}, {"epoch": 5, "loss": 0.026974555104970932, "spread": 0.449537068605423}, {"epoch": 6, "loss": 0.035128071904182434, "spread": 0.5127869844436646}, {"epoch": 7, "loss": 0.04708787798881531, "spread": 0.6095584630966187}, {"epoch": 8, "loss": 0.05578122287988663, "spread": 0.6721621751785278}, {"epoch": 9, "loss": 0.06212003156542778, "spread": 0.7075112462043762}, {"epoch": 10, "loss": 0.06498164683580399, "spread": 0.7418569326400757}],
+ "config": {"epochs": 10, "dim": 128, "n_target": 6, "ema": 0.996, "batch": 256, "device": "Tesla T4"}
+}

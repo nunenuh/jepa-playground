@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 910 300" width="910" height="300">
+  <rect x="0" y="0" width="910" height="300" rx="12" fill="#ffffff"/>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#52514e"/></marker>
+    <marker id="ahv" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6250d6"/></marker>
+    <marker id="ahr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#e34948"/></marker>
+  </defs>
+  <style>
+    text { fill: #0b0b0b; font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .box { fill: #ffffff; stroke: #c3c2b7; stroke-width: 1.5; }
+    .learn { stroke: #2a78d6; } .frozen { stroke: #6b6a65; stroke-dasharray: 4 3; } .loss { stroke: #e0622f; }
+    .bad { stroke: #e34948; } .good { stroke: #1baf7a; }
+    .m { font-size: 13px; font-weight: 600; }
+    .h { font-size: 14px; font-weight: 700; }
+    .s { font-size: 11.5px; fill: #52514e; font-family: ui-monospace, Menlo, Consolas, monospace; }
+    .c { font-size: 11px; fill: #6b6a65; font-family: ui-monospace, Menlo, Consolas, monospace; }
+    .v { fill: #6250d6; } .r { fill: #e34948; } .g { fill: #1baf7a; } .y { fill: #b07a00; }
+    .a { stroke: #52514e; stroke-width: 1.5; fill: none; marker-end: url(#ah); }
+    .ar { stroke: #e34948; stroke-width: 1.5; fill: none; marker-end: url(#ahr); }
+    .ema { stroke: #6250d6; stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; marker-end: url(#ahv); }
+  </style>
+  <g transform="translate(6,8)">
+  <text class="h" x="4" y="14" text-anchor="start">Train once, on AgentDojo only</text>
+  <rect class="box " x="4" y="30" width="150" height="70" rx="8"/>
+  <text class="m" x="79.0" y="55" text-anchor="middle">AgentDojo runs</text>
+  <text class="s" x="79.0" y="72" text-anchor="middle">29 real agents</text>
+  <text class="c" x="79.0" y="88" text-anchor="middle">9,946 train runs</text>
+  <rect class="box frozen" x="190" y="30" width="150" height="70" rx="8"/>
+  <text class="m" x="265.0" y="55" text-anchor="middle">MiniLM</text>
+  <text class="s" x="265.0" y="72" text-anchor="middle">each text → 384-D</text>
+  <rect class="box learn" x="376" y="30" width="150" height="70" rx="8"/>
+  <text class="m" x="451.0" y="55" text-anchor="middle">JEPA</text>
+  <text class="s" x="451.0" y="72" text-anchor="middle">next-token predictor</text>
+  <text class="c" x="451.0" y="88" text-anchor="middle">no labels</text>
+  <rect class="box learn" x="562" y="30" width="160" height="70" rx="8"/>
+  <text class="m" x="642.0" y="55" text-anchor="middle">Probe</text>
+  <text class="s" x="642.0" y="72" text-anchor="middle">linear, per call</text>
+  <text class="c" x="642.0" y="88" text-anchor="middle">run score = top call</text>
+  <rect class="box frozen" x="758" y="30" width="142" height="70" rx="8"/>
+  <text class="m" x="829.0" y="55" text-anchor="middle">Alarm line</text>
+  <text class="s" x="829.0" y="72" text-anchor="middle">5% of AgentDojo</text>
+  <text class="c" x="829.0" y="88" text-anchor="middle">benign val runs</text>
+  <path class="a" d="M154,65 H188"/>
+  <path class="a" d="M340,65 H374"/>
+  <path class="a" d="M526,65 H560"/>
+  <path class="a" d="M722,65 H756"/>
+  <text class="h" x="4" y="150" text-anchor="start">Test on a benchmark it never saw: no retraining, no recalibration</text>
+  <rect class="box " x="4" y="166" width="150" height="76" rx="8"/>
+  <text class="m" x="79.0" y="191" text-anchor="middle">InjecAgent cases</text>
+  <text class="s" x="79.0" y="208" text-anchor="middle">1,054 attacks</text>
+  <text class="c" x="79.0" y="224" text-anchor="middle">+ benign twins</text>
+  <rect class="box good" x="190" y="166" width="150" height="76" rx="8"/>
+  <text class="m" x="265.0" y="191" text-anchor="middle">Qwen2.5-3B agent</text>
+  <text class="s" x="265.0" y="208" text-anchor="middle">sees task, call,</text>
+  <text class="c" x="265.0" y="224" text-anchor="middle">injected result</text>
+  <rect class="box " x="376" y="166" width="150" height="76" rx="8"/>
+  <text class="m" x="451.0" y="191" text-anchor="middle">3,162 runs</text>
+  <text class="s" x="451.0" y="208" text-anchor="middle">131 hijacked</text>
+  <text class="c" x="451.0" y="224" text-anchor="middle">1,977 resisted</text>
+  <path class="a" d="M154,204 H188"/>
+  <path class="a" d="M340,204 H374"/>
+  <rect class="box frozen" x="562" y="166" width="160" height="76" rx="8"/>
+  <text class="m" x="642.0" y="191" text-anchor="middle">Same detector</text>
+  <text class="s" x="642.0" y="208" text-anchor="middle">MiniLM → JEPA →</text>
+  <text class="c" x="642.0" y="224" text-anchor="middle">probe, frozen</text>
+  <path class="a" d="M526,204 H560"/>
+  <path class="ema" d="M642,102 V164"/>
+  <text class="c v" x="650" y="138" text-anchor="start">weights reused</text>
+  <rect class="box bad" x="758" y="166" width="142" height="76" rx="8"/>
+  <text class="m" x="829.0" y="191" text-anchor="middle">Alarm?</text>
+  <text class="s" x="829.0" y="208" text-anchor="middle">score > line</text>
+  <text class="c" x="829.0" y="224" text-anchor="middle">caught / flagged</text>
+  <path class="a" d="M722,204 H756"/>
+  <path class="ema" d="M829,102 V164"/>
+  <text class="c" x="4" y="282" text-anchor="start">hijacked = the agent calls an attacker tool (unlock the door, send money); resisted = injection seen, no attacker call</text>
+  </g>
+</svg>

@@ -24,6 +24,17 @@ four ways to see what stops the cheat:
 The encoder, predictor and loss are the same in all 4 runs. Only the
 **target** changes: where it comes from, and whether the loss can push it.
 
+## Setup
+
+| Part | What it is |
+|---|---|
+| Model | 01's MNIST JEPA: 16 patches, 6 hidden, 128-D, small transformer encoder and predictor |
+| Runs | 4 target variants (table above), same seeds, same everything else |
+| SIGReg | weight 0.05 on the encoder's embeddings (LeJEPA's anti-collapse loss) |
+| Training | 5 epochs per run, batch 256, AdamW (lr 1e-3), no labels |
+| Collapse checks | spread (std across the batch), effective rank, linear probe |
+| Hardware | Colab T4, about 70 s per run |
+
 ## Results
 
 5 epochs per run, Colab T4, about 70 s per run.

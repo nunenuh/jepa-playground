@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 910 405" width="910" height="405">
+  <rect x="0" y="0" width="910" height="405" rx="12" fill="#ffffff"/>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#52514e"/></marker>
+    <marker id="ahv" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6250d6"/></marker>
+    <marker id="ahr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#e34948"/></marker>
+  </defs>
+  <style>
+    text { fill: #0b0b0b; font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .box { fill: #ffffff; stroke: #c3c2b7; stroke-width: 1.5; }
+    .learn { stroke: #2a78d6; } .frozen { stroke: #6b6a65; stroke-dasharray: 4 3; } .loss { stroke: #e0622f; }
+    .bad { stroke: #e34948; } .good { stroke: #1baf7a; }
+    .m { font-size: 13px; font-weight: 600; }
+    .h { font-size: 14px; font-weight: 700; }
+    .s { font-size: 11.5px; fill: #52514e; font-family: ui-monospace, Menlo, Consolas, monospace; }
+    .c { font-size: 11px; fill: #6b6a65; font-family: ui-monospace, Menlo, Consolas, monospace; }
+    .v { fill: #6250d6; } .r { fill: #e34948; } .g { fill: #1baf7a; } .y { fill: #b07a00; }
+    .a { stroke: #52514e; stroke-width: 1.5; fill: none; marker-end: url(#ah); }
+    .ar { stroke: #e34948; stroke-width: 1.5; fill: none; marker-end: url(#ahr); }
+    .ema { stroke: #6250d6; stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; marker-end: url(#ahv); }
+  </style>
+  <g transform="translate(6,8)">
+  <text class="h" x="4" y="14" text-anchor="start">Training (Colab A100): learn how actions change the latent</text>
+  <rect class="box " x="4" y="30" width="140" height="70" rx="8"/>
+  <text class="m" x="74.0" y="55" text-anchor="middle">Last 3 frames</text>
+  <text class="s" x="74.0" y="72" text-anchor="middle">3 × 224 × 224</text>
+  <text class="c" x="74.0" y="88" text-anchor="middle">t-2, t-1, t</text>
+  <rect class="box " x="4" y="120" width="140" height="70" rx="8"/>
+  <text class="m" x="74.0" y="145" text-anchor="middle">Action blocks</text>
+  <text class="s" x="74.0" y="162" text-anchor="middle">3 × (5 moves × 2)</text>
+  <text class="c" x="74.0" y="178" text-anchor="middle">pointer dx, dy</text>
+  <rect class="box learn" x="180" y="30" width="160" height="70" rx="8"/>
+  <text class="m" x="260.0" y="55" text-anchor="middle">Encoder</text>
+  <text class="s" x="260.0" y="72" text-anchor="middle">ViT-tiny, CLS token</text>
+  <text class="c" x="260.0" y="88" text-anchor="middle">→ projector</text>
+  <rect class="box learn" x="180" y="120" width="160" height="70" rx="8"/>
+  <text class="m" x="260.0" y="145" text-anchor="middle">Action encoder</text>
+  <text class="s" x="260.0" y="162" text-anchor="middle">10 → latent size</text>
+  <path class="a" d="M144,65 H178"/>
+  <path class="a" d="M144,155 H178"/>
+  <rect class="box learn" x="380" y="70" width="170" height="80" rx="8"/>
+  <text class="m" x="465.0" y="95" text-anchor="middle">Predictor</text>
+  <text class="s" x="465.0" y="112" text-anchor="middle">causal transformer</text>
+  <text class="c" x="465.0" y="128" text-anchor="middle">3 latents + 3 actions</text>
+  <path class="a" d="M340,65 C360,65 360,95 378,98"/>
+  <path class="a" d="M340,155 C360,155 360,125 378,122"/>
+  <rect class="box loss" x="600" y="70" width="140" height="80" rx="8"/>
+  <text class="m" x="670.0" y="95" text-anchor="middle">Loss</text>
+  <text class="s" x="670.0" y="112" text-anchor="middle">MSE + SIGReg</text>
+  <text class="c" x="670.0" y="128" text-anchor="middle">vs real next latent</text>
+  <path class="a" d="M550,110 H598"/>
+  <text class="c" x="574" y="103" text-anchor="middle">next</text>
+  <rect class="box " x="780" y="70" width="120" height="80" rx="8"/>
+  <text class="m" x="840.0" y="95" text-anchor="middle">Frame t+1</text>
+  <text class="s" x="840.0" y="112" text-anchor="middle">same encoder</text>
+  <text class="c" x="840.0" y="128" text-anchor="middle">real next latent</text>
+  <path class="a" d="M778,110 H742"/>
+  <text class="h" x="4" y="222" text-anchor="start">Planning (laptop): imagine futures in latent space, pick the actions that reach the goal</text>
+  <rect class="box frozen" x="4" y="275" width="140" height="70" rx="8"/>
+  <text class="m" x="74.0" y="300" text-anchor="middle">Goal image</text>
+  <text class="s" x="74.0" y="317" text-anchor="middle">the pose to reach</text>
+  <text class="c" x="74.0" y="333" text-anchor="middle">→ goal latent</text>
+  <rect class="box good" x="180" y="275" width="160" height="70" rx="8"/>
+  <text class="m" x="260.0" y="300" text-anchor="middle">CEM search</text>
+  <text class="s" x="260.0" y="317" text-anchor="middle">300 action plans</text>
+  <text class="c" x="260.0" y="333" text-anchor="middle">× 30 refinements</text>
+  <rect class="box frozen" x="380" y="275" width="170" height="70" rx="8"/>
+  <text class="m" x="465.0" y="300" text-anchor="middle">Imagined rollout</text>
+  <text class="s" x="465.0" y="317" text-anchor="middle">predictor, 5 blocks</text>
+  <text class="c" x="465.0" y="333" text-anchor="middle">ahead, no simulator</text>
+  <path class="a" d="M340,310 H378"/>
+  <rect class="box bad" x="600" y="275" width="140" height="70" rx="8"/>
+  <text class="m" x="670.0" y="300" text-anchor="middle">Cost</text>
+  <text class="s" x="670.0" y="317" text-anchor="middle">distance between</text>
+  <text class="c" x="670.0" y="333" text-anchor="middle">final and goal latent</text>
+  <path class="a" d="M550,310 H598"/>
+  <path class="a" d="M74,345 V365 H670 V347"/>
+  <rect class="box good" x="780" y="275" width="120" height="70" rx="8"/>
+  <text class="m" x="840.0" y="300" text-anchor="middle">Act</text>
+  <text class="s" x="840.0" y="317" text-anchor="middle">do 5 moves,</text>
+  <text class="c" x="840.0" y="333" text-anchor="middle">then plan again</text>
+  <path class="a" d="M740,310 H778"/>
+  <path class="ema" d="M670,273 C640,250 300,250 260,273"/>
+  <text class="c v" x="465" y="246" text-anchor="middle">best plans steer the next round</text>
+  <text class="c" x="372" y="380" text-anchor="middle">goal latent</text>
+  <text class="c" x="896" y="392" text-anchor="end">frozen = trained weights reused, no learning at planning time</text>
+  </g>
+</svg>

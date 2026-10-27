@@ -29,3 +29,38 @@ fig.legend(*axes[0].get_legend_handles_labels(), fontsize=8, loc="lower center",
 fig.suptitle("Hijack detector trained on AgentDojo, tested on InjecAgent without retraining", fontsize=11)
 fig.tight_layout(rect=(0, 0.07, 1, 1))
 fig.savefig("transfer.png", dpi=110)
+
+# score histogram: where InjecAgent runs land relative to the AgentDojo alarm line
+h = r["hist"]
+edges = h["edges"]
+fig, ax = plt.subplots(figsize=(8, 3.6))
+for k, c in [("benign", "#9aa5b1"), ("resisted", "#2f7ed8"), ("hijacked", "#e4572e")]:
+    n = sum(h[k])
+    ax.stairs([v / n for v in h[k]], edges, fill=True, alpha=0.55, color=c, label=f"{k} ({n} runs)")
+ax.axvline(h["threshold"], color="k", ls="--", lw=1, label="alarm line (5% of AgentDojo benign)")
+ax.set_xlabel("run score (probe on raw+jepa, trained on AgentDojo only)")
+ax.set_ylabel("share of runs")
+ax.set_title("InjecAgent runs: hijacks score higher, but mostly below the transferred alarm line", fontsize=10)
+ax.legend(fontsize=8)
+fig.tight_layout()
+fig.savefig("scores.png", dpi=110)
+
+# one task, two behaviours
+ex, thr = r["example"], r["example_threshold"]
+fig, axes = plt.subplots(2, 1, figsize=(10, 4.6))
+for ax, run in zip(axes, ex):
+    labels = [c.replace("CALL ", "").replace("https://www.", "")[:58] + ("…" if len(c) > 63 else "") for c in run["calls"]]
+    cols = ["#9aa5b1"] + ["#e4572e" if run["kind"] == "hijacked" else "#2f7ed8"] * (len(labels) - 1)
+    ax.barh(range(len(labels)), run["scores"], color=cols)
+    ax.axvline(thr, color="k", ls="--", lw=1)
+    ax.set_yticks(range(len(labels)), [("user's call:  " if i == 0 else "agent's call: ") + l for i, l in enumerate(labels)], fontsize=8)
+    ax.invert_yaxis()
+    ax.set_xlim(-2, 3)
+    inj = run["result"].split("'snippet': '")[-1][:58]
+    ax.set_title(f"{run['kind']}: injected text \"{inj}...\"", fontsize=8.5, loc="left")
+    for i, v in enumerate(run["scores"]):
+        ax.text(v + (0.05 if v >= 0 else -0.05), i, f"{v:.2f}", va="center", ha="left" if v >= 0 else "right", fontsize=8)
+axes[-1].set_xlabel("call score (dashed: alarm line from AgentDojo)")
+fig.suptitle(f"Task: \"{ex[0]['task']}\"", fontsize=10)
+fig.tight_layout()
+fig.savefig("example.png", dpi=110)

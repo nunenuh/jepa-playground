@@ -31,6 +31,18 @@ looking at. So it ends up learning digit features without ever seeing a label.
 The EMA target plus `torch.no_grad()` is what stops **collapse** (every image
 getting the same embedding, which would make the loss trivially 0).
 
+## Setup
+
+| Part | What it is |
+|---|---|
+| Data | MNIST, 60,000 training digits (labels unused for training), 10,000 test digits |
+| Masking | 16 patches of 7×7 per digit; 6 hidden, 10 visible |
+| Encoders | small transformer, 128-D per patch; target = EMA copy (0.996) |
+| Predictor | small transformer with mask tokens at the hidden positions |
+| Training | 10 epochs, batch 256, AdamW, no labels |
+| Evaluation | linear probe on frozen, averaged patch embeddings |
+| Hardware | RTX A2000 laptop GPU, about 2 minutes (or Colab T4) |
+
 ## Results
 
 10 epochs, RTX A2000 laptop GPU, about 2 minutes.
@@ -42,6 +54,10 @@ getting the same embedding, which would make the loss trivially 0).
 
 The linear probe is one linear layer trained on the frozen embeddings. It can
 only read what the encoder already learned.
+
+A re-run on a Colab T4 (same seed) gives 56.5% → 83.7%: GPU arithmetic
+differs slightly between machines, so expect ±1 point. Raw numbers of that
+run, per epoch: [`assets/results.json`](assets/results.json).
 
 ### The task
 
@@ -70,6 +86,20 @@ t-SNE squashes the 128-D embeddings to 2-D; each point is drawn as its digit.
 Before training, groups overlap (only "1" stands apart). After training,
 0, 1, 2, 6, 7 form clean groups. 4/9 and 3/5/8 still mix: they differ only by
 small strokes, and that is where the missing ~17% comes from.
+
+## What it shows
+
+- **JEPA learns without labels.** Predicting the embeddings of hidden patches
+  lifts a linear probe from 56% to 83%: the encoder learned what digits look
+  like without being told which digit is which.
+- **Predicting embeddings, not pixels, is enough.** There is no decoder; the
+  model never draws a patch.
+- **A rising loss is fine; a vanishing spread is not.** The loss goes up as
+  the EMA target gets richer. Watch the spread instead: it grew from 0.20 to
+  0.75. [02](../02_collapse/) shows what happens when it falls.
+- **What it doesn't learn:** 4 vs 9 and 3/5/8 still mix. Small strokes don't
+  matter much for predicting a hidden patch, so the encoder mostly ignores
+  them.
 
 ## Experiments to try
 
