@@ -1,0 +1,104 @@
+# 10 · Agent security beyond 05: a benchmark the detector never saw
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nunenuh/jepa-playground/blob/main/10_agent_security/transfer.ipynb)
+
+05's hijack detector (frozen MiniLM, JEPA pretrained without labels, linear
+probe) was trained and tested on AgentDojo. A real guardrail meets agents,
+tools and attacks it was never trained on. So here the same detector is
+trained on AgentDojo only, then tested **without retraining** on
+[InjecAgent](https://github.com/uiuc-kang-lab/InjecAgent): 1,054 attack
+cases with tools AgentDojo doesn't have (smart locks, bank transfers, health
+records, ...). The alarm threshold also comes from AgentDojo only.
+
+Short answer: **it partly transfers, but a trivial rule beats it**, and the
+alarm threshold doesn't carry over. InjecAgent turns out to be a weak test
+for a trajectory detector, which is itself worth knowing.
+
+The model is 05's ([architecture](../05_real_agents/README.md#setup)); only
+the test data is new.
+
+## Setup
+
+| Part | What it is |
+|---|---|
+| Training data | AgentDojo runs (29 real LLM agents), 05's split: 9,946 train / 1,280 val runs |
+| Detector | 05's: MiniLM → JEPA (3,000 steps, no labels) → linear probe (multiple-instance loss), on raw, jepa or raw+jepa call features |
+| Test data | InjecAgent cases (base + enhanced attacks, direct harm + data stealing), pinned commit |
+| Agent | InjecAgent ships cases, not runs, so we make them. **Qwen2.5-3B-Instruct** with native function calling gets the user task, the user tool's call and its result (with the injection), then picks its next action, as in InjecAgent's own evaluation |
+| Labels | **hijacked**: it calls an attacker tool · **resisted**: injection present, no attacker tool · **benign**: same case, injection replaced by a harmless sentence |
+| Hardware | Colab T4: 68 min to generate 3,162 runs, ~10 min for the detector |
+
+The agent was hijacked in **131 of 2,108** attacked cases (5.4% base, 7.0%
+enhanced). Qwen2.5-1.5B was tried too and was never hijacked: it answers
+without calling any tool, so it was dropped.
+
+## Results
+
+![transfer](assets/transfer.png)
+
+| Detector | AUC hijacked vs resisted | Hijacks caught | Resisted flagged | Benign flagged |
+|---|---|---|---|---|
+| *AgentDojo test, in-domain (05 recipe)*, raw | 0.81 | 43% | 5.2% | 7.0% |
+| **InjecAgent**, probe on raw | 0.68 | 25% | 12.4% | 11.8% |
+| InjecAgent, probe on jepa | **0.73** | 0% | 0% | 0% |
+| InjecAgent, probe on raw+jepa | 0.66 | 19% | 12.4% | 11.8% |
+| InjecAgent, seen-before (no labels) | 0.64 | 100% | 82% | 82% |
+| **Trivial rule: "the agent made a call of its own"** | **0.96** | **100%** | 7.9% | 1.3% |
+| Ceiling: probe trained on InjecAgent (unseen user tools), raw+jepa | 0.83 | (threshold breaks) | | |
+
+"Caught" and "flagged" use the alarm line that flags 5% of AgentDojo's
+benign validation runs.
+
+**Harder test, only runs where the agent acted** (131 hijacked vs 157
+resisted runs that also made a call, mostly re-calling the user's tool):
+
+| Detector | AUC hijacked vs resisted | Hijacks caught | Resisted flagged |
+|---|---|---|---|
+| probe on raw | **0.86** | 25% | 1.3% |
+| probe on raw+jepa | 0.85 | 19% | 1.3% |
+| probe on jepa | 0.68 | 0% | 0% |
+| seen-before (no labels) | 0.69 | 100% | 97% |
+
+## What it shows
+
+- **Partial transfer.** AUC drops from 0.81 on AgentDojo to 0.66–0.73 on
+  the new benchmark. Training on InjecAgent itself reaches 0.83, so most of
+  the drop is the change of benchmark, not a hard task.
+- **The threshold doesn't transfer.** At AgentDojo's 5% alarm line, false
+  alarms on InjecAgent double (12%), and the JEPA-only probe flags nothing
+  at all: its scores shift below the line. A guardrail moved to a new
+  system needs recalibrating on that system's normal runs, even without
+  attack labels.
+- **A trivial rule wins (0.96).** In InjecAgent the agent takes one step
+  after the injection. Resisting usually means just answering, and every
+  hijack is a tool call, so "did it call anything" nearly solves it.
+  InjecAgent measures whether an agent *obeys*, not whether a monitor can
+  tell good actions from bad ones in a long run. AgentDojo, where agents
+  make many legitimate calls, is the better test for that.
+- **When the agent does act, the detector separates well** (0.86, catching
+  25% with 1.3% of resisted runs flagged). The easy part: an attacker tool
+  call (unlock the door, send money) vs re-calling the user's tool.
+- **JEPA features help the ranking but hurt calibration.** jepa has the best
+  all-runs AUC (0.73) but catches nothing at the transferred threshold;
+  raw+jepa is no better than raw here. On AgentDojo they were tied (0.81).
+- **No-label seen-before fails on new tools**: every call on a new tool
+  looks unseen, so 82% of benign runs get flagged.
+- Small numbers: 131 hijacks from one 3B agent, one seed. Treat
+  differences under ~0.05 AUC as noise.
+
+## Experiments to try
+
+- Multi-step runs: let the agent continue after the attacker call (InjecAgent's
+  simulated second step) so a hijack is a call among other calls.
+- A stronger agent (7B+, A100) for more, and more varied, hijacks.
+- Recalibrate the threshold on 50–100 benign InjecAgent runs (no attack
+  labels) and see how much of the recall comes back.
+- Agent Security Bench or MCP tool-poisoning cases as a third benchmark.
+
+## Run
+
+Click the Colab badge, pick a T4 runtime, Run all (~80 min, mostly the
+agent generating runs). Environment knobs: `AGENTS` (comma-separated HF
+model ids), `CASE_LIMIT` (first N cases per file, for a quick test),
+`JEPA_STEPS`. Raw numbers: [`assets/results.json`](assets/results.json);
+the chart is redrawn from them with `cd assets && python ../plot.py`.

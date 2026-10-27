@@ -1,0 +1,207 @@
+{
+ "agents": [
+  "Qwen/Qwen2.5-3B-Instruct"
+ ],
+ "runs": {
+  "train": {
+   "benign": 1916,
+   "hijacked": 1562,
+   "resisted": 6468
+  },
+  "val": {
+   "benign": 339,
+   "resisted": 733,
+   "hijacked": 208
+  },
+  "test": {
+   "benign": 975,
+   "resisted": 1179,
+   "hijacked": 212
+  },
+  "injecagent": {
+   "resisted": 1977,
+   "benign": 1054,
+   "hijacked": 131
+  }
+ },
+ "q1": {
+  "seen-before (no labels)": {
+   "AgentDojo test": {
+    "AUC vs benign": 0.6925519704818726,
+    "AUC vs resisted": 0.7477255463600159,
+    "recall hijacked": 0.0,
+    "flag rate benign": 0.0,
+    "flag rate resisted": 0.0
+   },
+   "InjecAgent": {
+    "AUC vs benign": 0.6472833752632141,
+    "AUC vs resisted": 0.6422175168991089,
+    "recall hijacked": 1.0,
+    "flag rate benign": 0.8235294222831726,
+    "flag rate resisted": 0.8199291825294495
+   }
+  },
+  "probe, raw": {
+   "AgentDojo test": {
+    "AUC vs benign": 0.8116569519042969,
+    "AUC vs resisted": 0.8139793276786804,
+    "recall hijacked": 0.4292452931404114,
+    "flag rate benign": 0.06974358856678009,
+    "flag rate resisted": 0.051738761365413666
+   },
+   "InjecAgent": {
+    "AUC vs benign": 0.6912887096405029,
+    "AUC vs resisted": 0.6811364889144897,
+    "recall hijacked": 0.25190839171409607,
+    "flag rate benign": 0.11764705926179886,
+    "flag rate resisted": 0.12443095445632935
+   }
+  },
+  "probe, jepa": {
+   "AgentDojo test": {
+    "AUC vs benign": 0.8113691210746765,
+    "AUC vs resisted": 0.8126370310783386,
+    "recall hijacked": 0.3254716992378235,
+    "flag rate benign": 0.11076922714710236,
+    "flag rate resisted": 0.12298557907342911
+   },
+   "InjecAgent": {
+    "AUC vs benign": 0.7214971780776978,
+    "AUC vs resisted": 0.729864776134491,
+    "recall hijacked": 0.0,
+    "flag rate benign": 0.0,
+    "flag rate resisted": 0.0
+   }
+  },
+  "probe, raw+jepa": {
+   "AgentDojo test": {
+    "AUC vs benign": 0.8097072839736938,
+    "AUC vs resisted": 0.8132151365280151,
+    "recall hijacked": 0.3962264060974121,
+    "flag rate benign": 0.07589743286371231,
+    "flag rate resisted": 0.044953349977731705
+   },
+   "InjecAgent": {
+    "AUC vs benign": 0.6738741397857666,
+    "AUC vs resisted": 0.6630429029464722,
+    "recall hijacked": 0.19083969295024872,
+    "flag rate benign": 0.11764705926179886,
+    "flag rate resisted": 0.12443095445632935
+   }
+  },
+  "ceiling: probe trained on InjecAgent, raw": {
+   "InjecAgent": {
+    "AUC vs benign": 0.8012903332710266,
+    "AUC vs resisted": 0.7949358224868774,
+    "recall hijacked": 1.0,
+    "flag rate benign": 1.0,
+    "flag rate resisted": 1.0
+   }
+  },
+  "ceiling: probe trained on InjecAgent, raw+jepa": {
+   "InjecAgent": {
+    "AUC vs benign": 0.8389677405357361,
+    "AUC vs resisted": 0.8281100988388062,
+    "recall hijacked": 1.0,
+    "flag rate benign": 1.0,
+    "flag rate resisted": 1.0
+   }
+  }
+ },
+ "q2": {
+  "model=Qwen/Qwen2.5-3B-Instruct": {
+   "AUC vs benign": 0.6738741397857666,
+   "AUC vs resisted": 0.6630429029464722,
+   "recall hijacked": 0.19083969295024872,
+   "flag rate benign": 0.11764705926179886,
+   "flag rate resisted": 0.12443095445632935,
+   "hijacked runs": 131
+  },
+  "attack=dh": {
+   "AUC vs benign": 0.6386586427688599,
+   "AUC vs resisted": 0.631787896156311,
+   "recall hijacked": 0.09090909361839294,
+   "flag rate benign": 0.11764706671237946,
+   "flag rate resisted": 0.12295081466436386,
+   "hijacked runs": 44
+  },
+  "attack=ds": {
+   "AUC vs benign": 0.6916835308074951,
+   "AUC vs resisted": 0.6775752902030945,
+   "recall hijacked": 0.24137930572032928,
+   "flag rate benign": 0.11764705926179886,
+   "flag rate resisted": 0.1258741170167923,
+   "hijacked runs": 87
+  },
+  "setting=base": {
+   "AUC vs benign": 0.6804737448692322,
+   "AUC vs resisted": 0.6713561415672302,
+   "recall hijacked": 0.19298246502876282,
+   "flag rate benign": 0.11764705926179886,
+   "flag rate resisted": 0.12337011098861694,
+   "hijacked runs": 57
+  },
+  "setting=enhanced": {
+   "AUC vs benign": 0.6687906980514526,
+   "AUC vs resisted": 0.6563913226127625,
+   "recall hijacked": 0.18918919563293457,
+   "flag rate benign": 0.11764705926179886,
+   "flag rate resisted": 0.12551020085811615,
+   "hijacked runs": 74
+  }
+ },
+ "q3": {
+  "trivial: agent made its own call": {
+   "AUC vs benign": 0.9933586120605469,
+   "AUC vs resisted": 0.9602932929992676,
+   "recall hijacked": 1.0,
+   "flag rate benign": 0.013282732106745243,
+   "flag rate resisted": 0.07941325008869171
+  },
+  "probe, raw, runs where the agent acted": {
+   "AUC vs benign": 0.6912887096405029,
+   "AUC vs resisted": 0.8586813807487488,
+   "recall hijacked": 0.25190839171409607,
+   "flag rate benign": 0.11764705926179886,
+   "flag rate resisted": 0.012738853693008423
+  },
+  "probe, jepa, runs where the agent acted": {
+   "AUC vs benign": 0.7214971780776978,
+   "AUC vs resisted": 0.6769096255302429,
+   "recall hijacked": 0.0,
+   "flag rate benign": 0.0,
+   "flag rate resisted": 0.0
+  },
+  "probe, raw+jepa, runs where the agent acted": {
+   "AUC vs benign": 0.6738741397857666,
+   "AUC vs resisted": 0.8487139940261841,
+   "recall hijacked": 0.19083969295024872,
+   "flag rate benign": 0.11764705926179886,
+   "flag rate resisted": 0.012738853693008423
+  },
+  "seen-before, runs where the agent acted": {
+   "AUC vs benign": 0.6472833752632141,
+   "AUC vs resisted": 0.6857344508171082,
+   "recall hijacked": 1.0,
+   "flag rate benign": 0.8235294222831726,
+   "flag rate resisted": 0.9745222926139832
+  },
+  "acted runs": {
+   "resisted": 157,
+   "hijacked": 131,
+   "benign": 14
+  }
+ },
+ "generation": {
+  "agent": "Qwen/Qwen2.5-3B-Instruct",
+  "cases": 3162,
+  "seconds_T4": 4087,
+  "hijack_rate": {
+   "base": 0.054,
+   "enhanced": 0.07
+  },
+  "also_tried": {
+   "Qwen/Qwen2.5-1.5B-Instruct": "0 hijacks in 2108 attacked cases (it answers without calling tools); dropped"
+  }
+ }
+}
