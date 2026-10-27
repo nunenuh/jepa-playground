@@ -42,9 +42,8 @@ What's next and why: [ROADMAP.md](ROADMAP.md).
 ## Run
 
 ```bash
-# local
-uv run --with torch --with torchvision --with matplotlib --with scikit-learn \
-    python 01_mnist_jepa/mnist_jepa.py
+# local: one environment for 01-08 and 10 (09 has its own Docker images)
+uv run --with-requirements requirements.txt python 01_mnist_jepa/mnist_jepa.py
 
 # or click the Colab badge above (or use the Google Colab extension in VS Code)
 ```

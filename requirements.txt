@@ -1,0 +1,16 @@
+# Everything 01-08 and 10 need, locally (Colab already has all of it).
+# 09 runs in its own Docker images: see 09_world_model/README.md.
+# Older NVIDIA drivers (CUDA 12.6): add --index https://download.pytorch.org/whl/cu126 to get a GPU build of torch.
+torch>=2.4
+torchvision>=0.19
+numpy
+matplotlib
+scikit-learn
+scipy
+pandas
+pillow
+opencv-python
+huggingface_hub
+transformers>=4.53          # V-JEPA 2 (06-08)
+sentence-transformers>=3    # MiniLM text encoder (04, 05, 10)
+jupytext                    # regenerate the notebooks from the .py sources
