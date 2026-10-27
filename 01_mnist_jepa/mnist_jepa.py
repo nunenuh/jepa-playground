@@ -252,3 +252,12 @@ for ax, enc, title in [(axes[0], random_enc, f"Before training: probe {probe_bef
     ax.set_xlim(xy[:, 0].min() - 3, xy[:, 0].max() + 3); ax.set_ylim(xy[:, 1].min() - 3, xy[:, 1].max() + 3)
     ax.set_title(title); ax.set_xticks([]); ax.set_yticks([])
 plt.tight_layout(); plt.savefig(OUT / "tsne.png", dpi=110); plt.show()
+
+# %% Raw numbers
+import json
+
+(OUT / "results.json").write_text(json.dumps({
+    "probe_accuracy": {"random_encoder": probe_before, "jepa_encoder": probe_after},
+    "per_epoch": [{"epoch": i + 1, "loss": l, "spread": s} for i, (l, s) in enumerate(history)],
+    "config": {"epochs": EPOCHS, "dim": DIM, "n_target": N_TARGET, "ema": EMA, "batch": 256,
+               "device": torch.cuda.get_device_name(0) if DEVICE == "cuda" else "cpu"}}, indent=1))
