@@ -3,7 +3,9 @@
 Follows LeWM's official evaluation settings (lucas-maes/le-wm, eval.py + config/eval/pusht.yaml):
 start from a state of an expert episode, the goal is the state 25 steps later,
 the planner (CEM in latent space) gets 50 steps to reach it. Compared with a
-random policy. Saves results.json and one mp4 per episode.
+random policy and two baselines: replay the expert's own 25 recorded actions
+(open loop, then stand still), and stand still. Saves results.json and one mp4
+per episode.
 
 Data: the 21 Push-T validation episodes released with H-JEPA (16 MB) instead of
 LeWM's 13 GB training set; the action/state normalisers are fit on them.
@@ -55,9 +57,34 @@ def pick_starts(dataset, n, seed):
     return data[col].tolist(), data["step_idx"].tolist()
 
 
-def make_policy(name, dataset, seed):
+class ReplayPolicy(swm.policy.BasePolicy):
+    """Plays a fixed (envs, steps, 2) action array, one step per call, zeros after it ends."""
+
+    def __init__(self, actions):
+        super().__init__()
+        self.actions, self.t = actions, 0
+
+    def get_action(self, obs, **kwargs):
+        a = self.actions[:, self.t] if self.t < self.actions.shape[1] else np.zeros_like(self.actions[:, 0])
+        self.t += 1
+        return a
+
+
+def expert_actions(dataset, episodes, starts):
+    """The GOAL_OFFSET actions the expert took from each start to its goal (unnormalised, as the env takes them)."""
+    col = "episode_idx" if "episode_idx" in dataset.column_names else "ep_idx"
+    ep, step, act = dataset.get_col_data(col), dataset.get_col_data("step_idx"), dataset.get_col_data("action")
+    rows = [[np.nonzero((ep == e) & (step == s + k))[0][0] for k in range(GOAL_OFFSET)] for e, s in zip(episodes, starts)]
+    return np.nan_to_num(act[np.array(rows)]).astype(np.float32)
+
+
+def make_policy(name, dataset, seed, episodes, starts):
     if name == "random":
         return swm.policy.RandomPolicy()
+    if name == "replay":
+        return ReplayPolicy(expert_actions(dataset, episodes, starts))
+    if name == "still":
+        return ReplayPolicy(np.zeros((len(episodes), 1, 2), dtype=np.float32))
     process = {}
     for k in KEYS:
         x = dataset.get_col_data(k)
@@ -75,7 +102,8 @@ def make_policy(name, dataset, seed):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--policies", nargs="+", default=["quentinll/lewm-pusht", "random"],
-                    help="HF repo ids or checkpoint paths (relative to $STABLEWM_HOME/checkpoints), or 'random'")
+                    help="HF repo ids or checkpoint paths (relative to $STABLEWM_HOME/checkpoints), "
+                         "or 'random', 'replay' (the expert's recorded actions), 'still'")
     ap.add_argument("--episodes", type=int, default=20)
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--out", default="/out")
@@ -91,7 +119,7 @@ def main():
     for name in args.policies:
         world = swm.World(env_name="swm/PushT-v1", num_envs=args.episodes,
                           max_episode_steps=2 * BUDGET, image_shape=(224, 224))
-        world.set_policy(make_policy(name, dataset, args.seed))
+        world.set_policy(make_policy(name, dataset, args.seed, episodes, starts))
         videos = Path(args.out, "videos", name.replace("/", "_"))
         videos.mkdir(parents=True, exist_ok=True)
         t0 = time.time()

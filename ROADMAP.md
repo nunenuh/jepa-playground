@@ -60,7 +60,7 @@ data and checkpoints on Hugging Face.
 - [x] Official LeWM checkpoint planning in Push-T: **74%** vs random 0% (50 episodes)
 - [x] Train our own LeWM on Push-T on Colab (3.5 h A100, 13,791 steps), plan with it on the laptop: **78%** vs official 74%
 - [x] H-JEPA (hierarchical) vs flat LeWM in Visual AntMaze, released checkpoints: 20% → 60% (2 levels) → 80% (3 levels), paper 18 → 39 → 73%
-- [ ] Planning success vs a baseline (copy the demonstrations / random actions)
+- [x] Planning success vs baselines: stand still 0%, random 0–2%, LeWM 74%, replaying the expert's recorded actions 100% (deterministic simulator, but needs the actions)
 - [x] **Velocity check** ([Velocity Blind Spot](https://huggingface.co/papers/2610.04585)): one latent has positions (R² 0.97–0.99) but no velocity (≈ 0); two latents recover it (0.71–0.85)
 - [ ] ~~Optional: TI-JEPA fix~~ skipped: the predictor's 3-frame history already catches frozen/reversed motion
 - [x] Surprise on impossible Push-T rollouts: teleported 1.00, reversed 0.99, frozen 0.93 AUC (ours); unlike V-JEPA 2 in 07

@@ -43,11 +43,20 @@ steps**. 50 episodes, same starts for every policy.
 
 | Policy | Success | Time (50 episodes) |
 |---|---|---|
+| Stand still (zero actions) | **0%** | 18 s |
 | Random actions | **0–2%** | 21–35 s |
 | **LeWM + CEM planning** | **74%** | 189–201 s |
+| Replay the expert's 25 recorded actions (open loop) | **100%** | 10 s |
 
 (Two runs; the planner samples, so success moves by a few points between
 runs: random 0% then 2%, our epoch-2 model below 48% then 44%.)
+
+The two baselines bound the task. Standing still never succeeds, so no goal
+is already reached at the start. Replaying the demonstration always succeeds:
+the simulator is deterministic, so the expert's own actions are a perfect
+answer. That replay is a cheat, though: it needs the exact actions, while the
+planner gets only the goal image and has to find its own. The planner closes
+74% of the gap between doing nothing and the perfect answer.
 
 RTX A2000 Laptop GPU (4 GB), ~15 MB of GPU memory. Raw numbers:
 [`assets/results.json`](assets/results.json).
