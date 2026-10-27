@@ -37,7 +37,7 @@ What's next and why: [ROADMAP.md](ROADMAP.md).
 | 07 | zero-shot surprise AUC 0.19 (reverse) / 0.32 (freeze) | **0.96–1.00** on all 4 types with the adapted predictor | Ped2 clips edited to break physics, Colab T4 (~17 min). [Details and figures](07_physical_anomalies/README.md) |
 | 08 | pairwise accuracy 50.2% (ViT-L, one setting: chance) | **54.5%** ViT-H with the official protocol (held-out 54.2%), within noise of the paper's 57.5%; ViT-L ≈ ViT-H; adapting: no gain | IntPhys 2 main set, 506 pairs, Colab T4 + A100. [Details and figures](08_intphys2/README.md) |
 | 09 | random actions: 0–2% success (expert replay 100%) | **74%** official LeWM checkpoint · **78%** our own LeWM trained 3.5 h on Colab (~1% of the official budget), planning in Push-T · one latent has positions but no velocity; surprise catches frozen/reversed/teleported motion (AUC 0.93–1.00) · hierarchy (H-JEPA) in AntMaze: 20% flat → 80% with 3 levels | Train on Colab A100, plan in Docker on an RTX A2000 laptop. [Details](09_world_model/README.md) |
-| 10 | AgentDojo-trained detector on AgentDojo: AUC 0.81 | on InjecAgent without retraining: **0.66–0.73** (0.86 on runs where the agent acted), threshold doesn't transfer; a trivial "agent made a call" rule scores 0.96 | Qwen2.5-3B generates 3,162 InjecAgent runs, Colab T4 (~80 min). [Details](10_agent_security/README.md) |
+| 10 | AgentDojo-trained detector on AgentDojo: AUC 0.81 | on InjecAgent without retraining: **0.66–0.73** (0.86 on runs where the agent acted), threshold doesn't transfer; a trivial "agent made a call" rule scores 0.96 · argument sources: 0.94 in-domain, 0.76 transferred (3 seeds) | Qwen2.5-3B generates 3,162 InjecAgent runs, Colab T4 (~80 min). [Details](10_agent_security/README.md) |
 
 ## Run
 

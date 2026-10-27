@@ -400,5 +400,305 @@
    ]
   }
  ],
- "example_threshold": 2.402
+ "example_threshold": 2.402,
+ "q4": {
+  "calibration_benign_runs": 100,
+  "seeds": 3,
+  "raw": {
+   "AgentDojo test": {
+    "AUC vs resisted": [
+     0.809,
+     0.015
+    ],
+    "recall hijacked": [
+     0.437,
+     0.022
+    ],
+    "flag rate benign": [
+     0.089,
+     0.024
+    ],
+    "flag rate resisted": [
+     0.076,
+     0.035
+    ]
+   },
+   "InjecAgent, AgentDojo line": {
+    "AUC vs resisted": [
+     0.682,
+     0.018
+    ],
+    "recall hijacked": [
+     0.229,
+     0.046
+    ],
+    "flag rate benign": [
+     0.093,
+     0.031
+    ],
+    "flag rate resisted": [
+     0.104,
+     0.036
+    ]
+   },
+   "InjecAgent, recalibrated line": {
+    "AUC vs resisted": [
+     0.682,
+     0.018
+    ],
+    "recall hijacked": [
+     0.041,
+     0.016
+    ],
+    "flag rate benign": [
+     0.0,
+     0.0
+    ],
+    "flag rate resisted": [
+     0.0,
+     0.0
+    ]
+   },
+   "InjecAgent acted runs, recalibrated line": {
+    "AUC vs resisted": [
+     0.856,
+     0.013
+    ],
+    "recall hijacked": [
+     0.041,
+     0.016
+    ],
+    "flag rate benign": [
+     0.0,
+     0.0
+    ],
+    "flag rate resisted": [
+     0.0,
+     0.0
+    ]
+   }
+  },
+  "raw+jepa": {
+   "AgentDojo test": {
+    "AUC vs resisted": [
+     0.806,
+     0.018
+    ],
+    "recall hijacked": [
+     0.377,
+     0.096
+    ],
+    "flag rate benign": [
+     0.07,
+     0.015
+    ],
+    "flag rate resisted": [
+     0.045,
+     0.017
+    ]
+   },
+   "InjecAgent, AgentDojo line": {
+    "AUC vs resisted": [
+     0.672,
+     0.018
+    ],
+    "recall hijacked": [
+     0.193,
+     0.088
+    ],
+    "flag rate benign": [
+     0.113,
+     0.056
+    ],
+    "flag rate resisted": [
+     0.125,
+     0.062
+    ]
+   },
+   "InjecAgent, recalibrated line": {
+    "AUC vs resisted": [
+     0.672,
+     0.018
+    ],
+    "recall hijacked": [
+     0.048,
+     0.004
+    ],
+    "flag rate benign": [
+     0.0,
+     0.0
+    ],
+    "flag rate resisted": [
+     0.001,
+     0.0
+    ]
+   },
+   "InjecAgent acted runs, recalibrated line": {
+    "AUC vs resisted": [
+     0.827,
+     0.032
+    ],
+    "recall hijacked": [
+     0.048,
+     0.004
+    ],
+    "flag rate benign": [
+     0.0,
+     0.0
+    ],
+    "flag rate resisted": [
+     0.006,
+     0.0
+    ]
+   }
+  },
+  "raw+src": {
+   "AgentDojo test": {
+    "AUC vs resisted": [
+     0.935,
+     0.01
+    ],
+    "recall hijacked": [
+     0.564,
+     0.036
+    ],
+    "flag rate benign": [
+     0.031,
+     0.0
+    ],
+    "flag rate resisted": [
+     0.025,
+     0.002
+    ]
+   },
+   "InjecAgent, AgentDojo line": {
+    "AUC vs resisted": [
+     0.758,
+     0.01
+    ],
+    "recall hijacked": [
+     0.234,
+     0.009
+    ],
+    "flag rate benign": [
+     0.093,
+     0.031
+    ],
+    "flag rate resisted": [
+     0.107,
+     0.036
+    ]
+   },
+   "InjecAgent, recalibrated line": {
+    "AUC vs resisted": [
+     0.758,
+     0.01
+    ],
+    "recall hijacked": [
+     0.107,
+     0.02
+    ],
+    "flag rate benign": [
+     0.0,
+     0.0
+    ],
+    "flag rate resisted": [
+     0.002,
+     0.001
+    ]
+   },
+   "InjecAgent acted runs, recalibrated line": {
+    "AUC vs resisted": [
+     0.816,
+     0.008
+    ],
+    "recall hijacked": [
+     0.107,
+     0.02
+    ],
+    "flag rate benign": [
+     0.0,
+     0.0
+    ],
+    "flag rate resisted": [
+     0.019,
+     0.006
+    ]
+   }
+  },
+  "raw+jepa+src": {
+   "AgentDojo test": {
+    "AUC vs resisted": [
+     0.92,
+     0.011
+    ],
+    "recall hijacked": [
+     0.579,
+     0.021
+    ],
+    "flag rate benign": [
+     0.052,
+     0.001
+    ],
+    "flag rate resisted": [
+     0.052,
+     0.003
+    ]
+   },
+   "InjecAgent, AgentDojo line": {
+    "AUC vs resisted": [
+     0.748,
+     0.032
+    ],
+    "recall hijacked": [
+     0.272,
+     0.023
+    ],
+    "flag rate benign": [
+     0.093,
+     0.031
+    ],
+    "flag rate resisted": [
+     0.109,
+     0.036
+    ]
+   },
+   "InjecAgent, recalibrated line": {
+    "AUC vs resisted": [
+     0.748,
+     0.032
+    ],
+    "recall hijacked": [
+     0.115,
+     0.013
+    ],
+    "flag rate benign": [
+     0.0,
+     0.0
+    ],
+    "flag rate resisted": [
+     0.001,
+     0.001
+    ]
+   },
+   "InjecAgent acted runs, recalibrated line": {
+    "AUC vs resisted": [
+     0.786,
+     0.005
+    ],
+    "recall hijacked": [
+     0.115,
+     0.013
+    ],
+    "flag rate benign": [
+     0.0,
+     0.0
+    ],
+    "flag rate resisted": [
+     0.017,
+     0.01
+    ]
+   }
+  }
+ }
 }

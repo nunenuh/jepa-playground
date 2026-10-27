@@ -77,7 +77,7 @@ repo's unique contribution.
 
 - [x] **No labels** (05 Q9): best label-free ranking 0.76 ≈ a 50-label probe, but alarms catch ≤ 18%
 - [ ] **PRA-style paired views** ([JEPA-Align](https://huggingface.co/datasets/memo-ozdincer/jepa-qwen3-32b-pure-baselines-2026-05-25)): train so that an attacked run and a clean run of the same user task map close together; a run that drifts away is suspicious
-- [x] **New benchmark, no retraining** ([10](10_agent_security/)): AgentDojo → InjecAgent (Qwen2.5-3B as the agent): AUC 0.81 → 0.66–0.73, threshold doesn't transfer, and a trivial "agent made a call" rule wins (0.96) because InjecAgent is one step; on runs where the agent acted, 0.86
+- [x] **New benchmark, no retraining** ([10](10_agent_security/)): AgentDojo → InjecAgent (Qwen2.5-3B as the agent): AUC 0.81 → 0.66–0.73, threshold doesn't transfer, and a trivial "agent made a call" rule wins (0.96) because InjecAgent is one step; on runs where the agent acted, 0.86; argument sources lift it to 0.76 (3 seeds), recalibrating on benign runs kills false alarms but also most catches
 - [ ] Newer threats: malicious MCP servers / tool descriptions, if a dataset exists
 - [ ] Write-up for a blog post / portfolio
 
