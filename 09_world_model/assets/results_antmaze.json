@@ -1,0 +1,86 @@
+{
+ "lewm": {
+  "success_rate": 20.0,
+  "episode_successes": [
+   false,
+   true,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   true
+  ],
+  "steps_to_success": [
+   null,
+   180,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   234
+  ],
+  "evaluation_time_s": 2328.0205867290497
+ },
+ "hjepa_l2": {
+  "success_rate": 60.0,
+  "episode_successes": [
+   true,
+   true,
+   true,
+   false,
+   false,
+   true,
+   true,
+   false,
+   false,
+   true
+  ],
+  "steps_to_success": [
+   216,
+   333,
+   249,
+   null,
+   null,
+   283,
+   241,
+   null,
+   null,
+   269
+  ],
+  "evaluation_time_s": 1305.3796219825745
+ },
+ "hjepa_l3": {
+  "success_rate": 80.0,
+  "episode_successes": [
+   true,
+   true,
+   true,
+   false,
+   true,
+   true,
+   true,
+   true,
+   true,
+   false
+  ],
+  "steps_to_success": [
+   187,
+   209,
+   223,
+   null,
+   266,
+   281,
+   211,
+   253,
+   294,
+   null
+  ],
+  "evaluation_time_s": 1546.4989805221558
+ }
+}

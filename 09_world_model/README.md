@@ -6,7 +6,8 @@ laptop: **78% success after 3.5 h of training, on par with the official
 checkpoint (74%)**. Part 3: what the latent knows: **positions yes,
 velocity no (from one frame)**, yet the predictor catches frozen, reversed and
 teleported motion (AUC 0.93–1.00). Part 4: **play with it live** in a window
-([`play.sh`](play.sh)).
+([`play.sh`](play.sh)). Part 5: **hierarchy (H-JEPA) fixes the long-horizon wall** in
+Visual AntMaze: 20% flat → 80% with 3 levels.
 
 Experiments 01–08 only *watched*: they predicted what comes next. A world
 model that **plans** also takes actions: given the current camera image and a
@@ -209,6 +210,46 @@ What it shows, measured with `live.py --eval-episodes 21`:
 
 Needs an X11 desktop. `play.sh` lets the container's root user draw on your
 display (`xhost +SI:localuser:root`) and takes it back on exit.
+
+## Part 5: hierarchy fixes the long-horizon wall (H-JEPA in Visual AntMaze)
+
+Parts 2–4 hit the same wall: LeWM plans ~25 steps ahead, so longer tasks
+fail. [H-JEPA](https://huggingface.co/papers/2610.06805) (Zhang, Terver,
+Rabbat, LeCun, Balestriero, Oct 2026) stacks LeWMs in levels, each predicting
+farther ahead, and plans top-down: the top level picks waypoints, the bottom
+level walks. Their paper shows little gain on Push-T (40% → 45%) but a big one
+in navigation, so we tested it there.
+
+**Visual AntMaze**: a 3D four-legged ant robot must walk to a goal 3 maze
+cells away, seeing only a 64×64 camera image and a goal image, within 350
+steps. Their released checkpoints (seed 42) and their evaluation (same fixed
+tasks, planner settings), first 10 of their 50 tasks, on the laptop GPU
+([`hjepa/`](hjepa/): Dockerfile + [`antmaze.py`](hjepa/antmaze.py), ~5 min per task).
+
+| Planner | Reached (10 tasks) | Paper (50 tasks) | Time for 10 tasks |
+|---|---|---|---|
+| Flat LeWM | **2 (20%)** | 18% | 39 min |
+| H-JEPA, 2 levels | **6 (60%)** | 39% | 22 min |
+| H-JEPA, 3 levels | **8 (80%)** | 73% | 26 min |
+
+![antmaze](assets/antmaze_task04.png)
+
+Side-by-side video: [`assets/antmaze_task04_side_by_side.mp4`](assets/antmaze_task04_side_by_side.mp4).
+
+- **Hierarchy works.** 20% → 60% → 80% with more levels, reproducing the
+  paper's trend (18 → 39 → 73%); flat LeWM matches the paper almost exactly.
+  With 10 tasks the error bars are about ±15 points, so 60% vs the paper's 39%
+  for 2 levels is within noise.
+- **What it looks like:** when the goal is behind a wall, the flat ant heads
+  straight for it and gets lost; the hierarchical ant first goes through the
+  gap the top level chose as a waypoint.
+- **It's also faster:** fewer failed tasks run to the 350-step limit, and the
+  upper levels search a short, coarse plan instead of a long fine one.
+- **Still not solved:** 2 of 10 tasks fail even with 3 levels, and the
+  remaining long-horizon pieces (memory, own goals, speed) are what the
+  game-agent spin-off in the [ROADMAP](../ROADMAP.md) is about.
+
+Raw numbers: [`assets/results_antmaze.json`](assets/results_antmaze.json).
 
 ## Run it on your laptop (Docker)
 
