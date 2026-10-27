@@ -55,7 +55,7 @@ BATCH = 128
 SIGREG_WEIGHT = 0.002       # as in 03–05
 torch.manual_seed(0)
 
-AGENTS = os.environ.get("AGENTS", "Qwen/Qwen2.5-3B-Instruct,Qwen/Qwen2.5-1.5B-Instruct").split(",")
+AGENTS = os.environ.get("AGENTS", "Qwen/Qwen2.5-3B-Instruct").split(",")
 CASE_LIMIT = int(os.environ.get("CASE_LIMIT", 0))       # >0: only the first N cases per file (smoke test)
 GEN_BATCH = int(os.environ.get("GEN_BATCH", 16))
 OUT = Path(os.environ.get("OUT", "assets"))
@@ -380,7 +380,7 @@ def fit_probe(F_train, M_calls, y, epochs=300, seed=0):
 def auc(neg, pos):
     if len(neg) == 0 or len(pos) == 0:
         return float("nan")
-    return (pos[:, None] > neg[None, :]).float().mean().item()
+    return ((pos[:, None] > neg[None, :]).float() + 0.5 * (pos[:, None] == neg[None, :]).float()).mean().item()
 
 
 def evaluate(score_val, rows_val, score_test, rows_test):
@@ -460,6 +460,31 @@ for key in ["model", "attack", "setting"]:
 results["q2"] = q2
 for k, m in q2.items():
     print(f"{k:40s} " + "  ".join(f"{a} {b:.3f}" for a, b in m.items()))
+
+# %% [markdown]
+# ## Q3: is it just "the agent made a call"?
+#
+# In InjecAgent most agents that resist simply answer, with no call of their
+# own, while every hijack is a call. So a trivial rule, "the agent made its
+# own call", is a baseline. The harder test keeps only runs where the agent
+# made at least one call of its own: hijacked vs resisted-but-acted.
+
+# %%
+own_call = torch.tensor([float(len(r["steps"]) > 1) for r in injec_runs], device=DEVICE)
+acted = [r for r in injec_runs if len(r["steps"]) > 1 or r["kind"] == "benign"]
+acted_m = torch.tensor([len(r["steps"]) > 1 or r["kind"] == "benign" for r in injec_runs], device=DEVICE)
+q3 = {"trivial: agent made its own call": evaluate(torch.zeros(len(splits["val"]), device=DEVICE), splits["val"],
+                                                   own_call, injec_runs)}
+for kind, cols in COLS.items():
+    probe = fit_probe(FEATS["train"][..., cols], MC["train"], LABEL["train"])
+    sv_k = probe(FEATS["val"][..., cols], MC["val"])
+    q3[f"probe, {kind}, runs where the agent acted"] = evaluate(
+        sv_k, splits["val"], probe(FEATS["injecagent"][..., cols], MC["injecagent"])[acted_m], acted)
+q3["seen-before, runs where the agent acted"] = evaluate(seen_before("val"), splits["val"], seen_before("injecagent")[acted_m], acted)
+q3["acted runs"] = dict(Counter(r["kind"] for r in acted if len(r["steps"]) > 1))
+results["q3"] = q3
+for k, m in q3.items():
+    print(f"{k:50s} " + "  ".join(f"{a} {b:.3f}" for a, b in m.items()))
 
 # %% [markdown]
 # ## Pictures
